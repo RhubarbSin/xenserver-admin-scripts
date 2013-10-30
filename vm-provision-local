@@ -37,17 +37,15 @@ SR_UUID=$(xe sr-list params=uuid name-label='Local storage' host="$XENSERVER" --
 if [ -z "SR_UUID" ]; then
     echo "Storage repository \"Local storage\" on host $XENSERVER not found"
     exit 1
-else
-    echo "SR UUID: $SR_UUID"
 fi
+echo "SR UUID: $SR_UUID"
 
 TEMPLATE_UUID=$(xe template-list params=uuid name-label="$TEMPLATE"  --minimal)
 if [ -z "TEMPLATE_UUID" ]; then
     echo "Template \"$TEMPLATE\" not found"
     exit 1
-else
-    echo "Template UUID: $TEMPLATE_UUID"
 fi
+echo "Template UUID: $TEMPLATE_UUID"
 
 echo -e "Creating $VM...\c"
 VM_UUID=$(xe vm-install sr-uuid="$SR_UUID" template="$TEMPLATE_UUID" new-name-label="$VM")
