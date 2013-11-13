@@ -23,8 +23,6 @@
 #   - add support for HVM ("Other installation media")
 #   - add option for text or VNC console
 #
-# $Id: xcp_install_vm_from_template,v 1.16 2013/10/25 14:34:49 blb Exp blb $
-#
 ########################################################################
 #
 # Modify get_install_repository() if this setting is not sufficient;
@@ -57,7 +55,7 @@ Usage: $0 [OPTION] [...]
     -a ARCHITECTURE (i386, x86_64)
     -i INSTALLATION REPOSITORY URL
     -k KICKSTART or PRESEED FILE URL
-    -b set auto power-on when XCP boots
+    -b set auto power-on when XenServer boots
     -o LOG FILE LOCATION
 EOF
 }
@@ -68,7 +66,7 @@ EOF
 #
 
 function get_vm_name_label() {
-    echo -e "Enter VM name: \c"
+    echo -e "\nEnter VM name: \c"
     read VM_NAME_LABEL
     # in script (as opposed to command line), spaces don't work for name-label
     # even when escaped or quoted, so convert them to underscores
@@ -76,7 +74,7 @@ function get_vm_name_label() {
 }
 
 function get_vcpus() {
-    echo -e "Enter number of virtual CPUs [1]: \c"
+    echo -e "\nEnter number of virtual CPUs [1]: \c"
     read VCPUS
     VCPUS=${VCPUS:-1}
 }
@@ -130,13 +128,15 @@ function get_sr() {
     for ID in $UUIDS; do
         UUID[$IDX]=$ID
         NAME_LABEL[$IDX]=$(xe sr-list params=name-label uuid=$ID --minimal)
-        echo "${IDX}) ${NAME_LABEL[$IDX]}"
+        HOST[$IDX]=$(xe sr-list params=host uuid=$ID --minimal)
+        echo "${IDX}) ${NAME_LABEL[$IDX]} on ${HOST[$IDX]}"
         (( IDX++ ))
     done
     echo -e "\nChoose storage repository by number: \c"
     read NUM
     SR_UUID=${UUID[$NUM]}
     SR_NAME_LABEL=${NAME_LABEL[$NUM]}
+    SR_HOST=${HOST[$NUM]}
 }
 
 function get_network_uuid() {
@@ -549,6 +549,7 @@ Virtual CPUs: $VCPUS
 Memory size: $MEMORY_SIZE MB
 Disk size: $DISK_SIZE GB
 Storage repository name label: $SR_NAME_LABEL
+Storage repository host: $SR_HOST
 Storage repository UUID: $SR_UUID
 Network name label: $NETWORK_NAME_LABEL
 Network UUID: $NETWORK_UUID
@@ -560,7 +561,7 @@ Architecture: $ARCHITECTURE
 Installation repository URL: $INSTALL_REPO_URL
 PV args: $PV_ARGS
 EOF
-    echo -e "Auto power-on when XCP boots: \c"
+    echo -e "Auto power-on when XenServer boots: \c"
     if (( ${AUTO_POWERON:-0} )); then
         echo "yes"
     else
@@ -639,9 +640,9 @@ function show_command_line() {
 function main() {
     # source the common functions
     MYDIR=$(dirname $0)
-    XCP_FUNCTIONS="$MYDIR/xcp_functions"
-    if ! . "$XCP_FUNCTIONS"; then
-        echo "Error while sourcing $XCP_FUNCTIONS."
+    XS_FUNCTIONS="$MYDIR/xs-functions"
+    if ! . "$XS_FUNCTIONS"; then
+        echo "Error while sourcing $XS_FUNCTIONS."
         exit 1
     fi
 
