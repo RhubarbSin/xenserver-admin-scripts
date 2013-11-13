@@ -5,19 +5,19 @@ function usage() {
 
 Provision a VM from a template using local storage.
 
-Usage: ${0##*/} -s XENSERVER -t TEMPLATE -v VM
+Usage: ${0##*/} -h HOST -t TEMPLATE -v VM
 
--s    name label (host name) of XenServer host on which to provision the VM
+-h    name label (host name) of XenServer host on which to provision the VM
 -t    name label of the VM template to be copied
 -v    name label of the new VM
 EOF
     exit 2
 }
 
-while getopts :s:t:v: OPT; do
+while getopts :h:t:v: OPT; do
     case $OPT in
-        s)
-            XENSERVER="$OPTARG"
+        h)
+            HOST="$OPTARG"
             ;;
         t)
             TEMPLATE="$OPTARG"
@@ -31,11 +31,11 @@ while getopts :s:t:v: OPT; do
 done
 shift $(( OPTIND - 1 ))
 [ -n "$1" ] && usage
-[ -z "$XENSERVER" ] || [ -z "$TEMPLATE" ] || [ -z "$VM" ] && usage
+[ -z "$HOST" ] || [ -z "$TEMPLATE" ] || [ -z "$VM" ] && usage
 
-SR_UUID=$(xe sr-list params=uuid name-label='Local storage' host="$XENSERVER" --minimal)
-if [ -z "SR_UUID" ]; then
-    echo "Storage repository \"Local storage\" on host $XENSERVER not found"
+SR_UUID=$(xe sr-list params=uuid name-label='Local storage' host="$HOST" --minimal)
+if [ -z "$SR_UUID" ]; then
+    echo "Storage repository \"Local storage\" on host $HOST not found"
     exit 1
 fi
 echo "SR UUID: $SR_UUID"
@@ -51,4 +51,15 @@ echo -e "Creating $VM...\c"
 VM_UUID=$(xe vm-install sr-uuid="$SR_UUID" template="$TEMPLATE_UUID" new-name-label="$VM")
 if [ -n "$VM_UUID" ]; then
     echo -e "done.\nVM UUID: $VM_UUID"
+    VDI_UUID=$(xe vbd-list params=vdi-uuid device=xvda vm-uuid=$VM_UUID --minimal)
+    if [ -n "$VDI_UUID" ]; then
+        echo "VDI_UUID: $VDI_UUID"
+        echo -e "Renaming VDI...\c"
+        if xe vdi-param-set name-label="$VM" uuid="$VDI_UUID"; then
+            echo "done."
+        fi
+    else
+        echo "Error: VDI not found"
+        exit 1
+    fi
 fi
