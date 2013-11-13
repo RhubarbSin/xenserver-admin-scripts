@@ -36,28 +36,27 @@ INSTALL_REPO_URL_BASE="http://10.1.0.1"
 # Functions called from parse_arguments()
 #
 
-function print_usage() {
+function usage() {
     cat <<EOF
-Usage: $0 [OPTION] [...]
+Usage: ${0##*/} [OPTION] [...]
 
-    Options:
-
-    -l VM NAME LABEL
-    -c NUMBER OF VCPUS
-    -m MEMORY SIZE in MB
-    -h DISK SIZE in GB
-    -s STORAGE REPOSITORY NAME LABEL or UUID
-    -n NETWORK NAME LABEL or UUID
-    -p MAC ADDRESS (00:16:3e:xx:xx:xx)
-    -t TEMPLATE NAME LABEL or UUID
-    -d DISTRIBUTION (CentOS, Ubuntu, Debian)
-    -v VERSION
-    -a ARCHITECTURE (i386, x86_64)
-    -i INSTALLATION REPOSITORY URL
-    -k KICKSTART or PRESEED FILE URL
-    -b set auto power-on when XenServer boots
-    -o LOG FILE LOCATION
+-l    VM NAME LABEL
+-c    NUMBER OF VCPUS
+-m    MEMORY SIZE in MB
+-h    DISK SIZE in GB
+-s    STORAGE REPOSITORY NAME LABEL or UUID
+-n    NETWORK NAME LABEL or UUID
+-p    MAC ADDRESS (00:16:3e:xx:xx:xx)
+-t    TEMPLATE NAME LABEL or UUID
+-d    DISTRIBUTION (CentOS, Ubuntu, Debian)
+-v    VERSION
+-a    ARCHITECTURE (i386, x86_64)
+-i    INSTALLATION REPOSITORY URL
+-k    KICKSTART or PRESEED FILE URL
+-b    set auto power-on when XenServer boots
+-o    LOG FILE LOCATION
 EOF
+    exit 2
 }
 
 ########################################################################
@@ -518,8 +517,7 @@ function parse_arguments() {
                 LOG="$OPTARG"
                 ;;
             *)
-               print_usage
-               exit 1
+               usage
         esac
     done
 }
