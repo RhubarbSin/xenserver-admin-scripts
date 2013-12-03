@@ -52,7 +52,8 @@ Usage: ${0##*/} [OPTION] [...]
 -v    VERSION
 -a    ARCHITECTURE (i386, x86_64)
 -i    INSTALLATION REPOSITORY URL
--k    KICKSTART or PRESEED FILE URL
+-k    KICKSTART FILE URL
+-r    PRESEED FILE URL
 -b    set auto power-on when XenServer boots
 -o    LOG FILE LOCATION
 EOF
@@ -255,7 +256,7 @@ function get_version() {
 function get_architecture() {
     echo
     # try to guess architecture
-    CPU_ARCH=$(echo $TEMPLATE_NAME_LABEL | sed -e 's/^.*\(32\|64\)-bit.*$/\1/')
+    CPU_ARCH=$(echo $TEMPLATE_NAME_LABEL | sed -e '/32\|64/!d; s/^.*\(32\|64\)-bit.*$/\1/')
     if [ -n "$CPU_ARCH" ]; then
         echo "This template appears to be for a ${CPU_ARCH}-bit installation."
     else
@@ -296,6 +297,11 @@ function get_kickstart_url() {
     read KICKSTART_URL
 }
 
+function get_preseed_url() {
+    echo -e "\nEnter URL of preseed file (empty if none): \c"
+    read PRESEED_URL
+}
+
 function get_pv_args() {
     case $DISTRIBUTION in
         CentOS)
@@ -303,14 +309,10 @@ function get_pv_args() {
                 PV_ARGS="ks=$KICKSTART_URL ksdevice=bootif"
             fi
             ;;
-        Ubuntu)
-            if [ -n "$KICKSTART_URL" ]; then
-                PV_ARGS="ip=dhcp url=$KICKSTART_URL auto=true hostname=localhost"
+        Ubuntu|Debian)
+            if [ -n "$PRESEED_URL" ]; then
+                PV_ARGS="ip=dhcp url=$PRESEED_URL auto=true hostname=localhost"
             fi
-            ;;
-        Debian)
-            echo "$DISTRIBUTION is not supported."
-            exit 1
             ;;
         *)
             echo "$DISTRIBUTION is not supported."
@@ -434,7 +436,7 @@ function set_install_repository() {
 
 function set_boot_params() {
     echo -e "Setting boot parameters...\c"
-    CMD="xe vm-param-set uuid=$VM_UUID PV-args=\"$PV_ARGS\""
+    CMD="xe vm-param-set uuid=$VM_UUID PV-args=\"$PV_ARGS\" HVM-boot-params:order=ndc platform:viridian=false"
     [ -n "$LOG" ] && echo "$CMD" >> "$LOG"
     eval "$CMD"
     if [ $? -ne 0 ]; then
@@ -463,7 +465,7 @@ function get_domain_id() {
 #
 
 function parse_arguments() {
-    while getopts "l:c:m:h:s:n:p:t:d:v:a:i:k:bo:" OPT "$@"; do
+    while getopts "l:c:m:h:s:n:p:t:d:v:a:i:k:r:bo:" OPT "$@"; do
         case $OPT in
             l)
                 VM_NAME_LABEL="$OPTARG"
@@ -516,6 +518,9 @@ function parse_arguments() {
             k)
                 KICKSTART_URL="$OPTARG"
                 ;;
+            r)
+                PRESEED_URL="$OPTARG"
+                ;;
             b)
                 AUTO_POWERON=1
                 ;;
@@ -541,6 +546,7 @@ function get_all_parameters() {
     [ -n "$ARCHITECTURE" ] || get_architecture
     [ -n "$INSTALL_REPO_URL" ] || get_install_repository
     [ -n "$KICKSTART_URL" ] || get_kickstart_url
+    [ -n "$PRESEED_URL" ] || get_preseed_url
     get_pv_args
     [ -n "$LOG" ] || get_log_commands
 }
@@ -591,6 +597,7 @@ EOF
 
 function perform_installation() {
     install_from_template
+    set_vcpus
     set_memory_limits
     set_auto_power
     destroy_vdi
