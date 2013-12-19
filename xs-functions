@@ -138,7 +138,7 @@ function vm_host() {
 
 function valid_uuid() {
     [ -z "$1" ] && return 1
-    echo "$1" | egrep -q '^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$'
+    echo "$1" | egrep -q '^[0-9a-fA-F]{8}-([0-9a-fA-F]{4}-){3}[0-9a-fA-F]{12}$'
 }
 
 function valid_integer() {
@@ -148,7 +148,7 @@ function valid_integer() {
 
 function valid_mac_address() {
     [ -z "$1" ] && return 1
-    echo "$1" | egrep -q '[0-9a-fA-F][0-9a-fA-F]:[0-9a-fA-F][0-9a-fA-F]:[0-9a-fA-F][0-9a-fA-F]:[0-9a-fA-F][0-9a-fA-F]:[0-9a-fA-F][0-9a-fA-F]:[0-9a-fA-F][0-9a-fA-F]'
+    echo "$1" | egrep -q '([0-9a-fA-F]{2}:){5}[0-9a-fA-F]{2}'
 }
 
 ########################################################################
