@@ -1,0 +1,70 @@
+#!/bin/bash
+
+function usage() {
+    cat <<EOF
+
+Destroy all VMs that have a matching name label.
+
+Usage: ${0##*/} [-i] VM
+
+-i    prompt before any destruction
+VM    name label of the VM
+EOF
+    exit 2
+}
+
+function vm_destroy() {
+    echo -e "Getting power state of VM...\c"
+    VM_POWER_STATE=$(xe vm-param-get param-name=power-state uuid=$VM_UUID)
+    echo "$VM_POWER_STATE"
+
+    if [ "$VM_POWER_STATE" != halted ]; then
+        echo -e "Shutting down VM...\c"
+        if ! xe vm-shutdown vm="$1" > /dev/null 2>&1; then
+            xe vm-shutdown vm="$1" --force
+        fi
+        echo "done."
+    fi
+
+    echo -e "Getting UUID of VBD's VDI...\c"
+    VDI_UUID=$(xe vbd-list vm-uuid=$VM_UUID params=vdi-uuid device=hda --minimal)
+    echo "$VDI_UUID"
+
+    echo -e "Destroying VDI...\c"
+    xe vdi-destroy uuid=$VDI_UUID
+    echo "done."
+
+    echo -e "Destroying VM...\c"
+    xe vm-destroy uuid=$VM_UUID
+    echo "done."
+}
+
+########################################################################
+#
+# Main
+#
+
+if [ $# -ne 1 ]; then
+    echo "Usage: $0 VM_NAME_LABEL"
+    exit
+fi
+
+echo -e "Getting UUID of VM...\c"
+VM_UUIDS=$(xe vm-list name-label="$1" params=uuid --minimal)
+if [ -z "$VM_UUIDS" ]; then
+    echo "cannot find VM named \"$1\""
+    exit 1
+fi
+echo "$VM_UUIDS"
+if echo "$VM_UUIDS" | grep -q ,; then
+    echo -e "\nFound multiple VMs named \"$1\"; destroy them all [y/N]? \c"
+    read ALL
+    if ! echo "$ALL" | egrep -q '^[Yy]'; then
+        exit 1
+    fi
+fi
+
+VM_UUIDS=$(echo "$VM_UUIDS" | sed -e 's/,/ /'g)
+for VM_UUID in $VM_UUIDS; do
+    vm_destroy $VM_UUID
+done

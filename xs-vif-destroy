@@ -1,0 +1,55 @@
+#!/bin/bash
+
+function usage() {
+    cat <<EOF
+
+Destroy all of a VM's VIFs.
+
+Usage: ${0##*/} [-i] -v VM
+
+-i    prompt before any destruction
+-v    name label of the VM
+EOF
+    exit 2
+}
+
+INTERACTIVE=0
+
+while getopts :iv: OPT; do
+    case $OPT in
+        i)
+            INTERACTIVE=1
+            ;;
+        v)
+            VM="$OPTARG"
+            ;;
+        *)
+            usage
+    esac
+done
+shift $(( OPTIND - 1 ))
+[ -n "$1" ] || [ -z "$VM" ] && usage
+
+MYDIR=$(dirname $0)
+XS_FUNCTIONS="$MYDIR/xs-functions"
+if ! . "$XS_FUNCTIONS"; then
+    echo "Error while sourcing $XS_FUNCTIONS."
+    exit 1
+fi
+
+vm_uuid "$VM" || exit 1
+echo "VM UUID: $VM_UUID"
+VIF_UUIDS=$(xe vif-list vm-uuid="$VM_UUID" --minimal | sed -e 's/,/ /g')
+for VIF_UUID in $VIF_UUIDS; do
+    echo -e "\nVIF UUID: $VIF_UUID"
+    if (( $INTERACTIVE )); then
+        DEVICE=$(xe vif-param-get param-name=device uuid="$VIF_UUID" --minimal)
+        prompt "Remove device $DEVICE" || continue
+    fi
+    echo -e "Destroying VIF...\c"
+    if xe vif-destroy uuid="$VIF_UUID"; then
+        echo "done."
+    else
+        exit 1
+    fi
+done

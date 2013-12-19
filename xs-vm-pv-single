@@ -1,0 +1,39 @@
+#!/bin/bash
+
+function usage() {
+    cat <<EOF
+
+Toggle a VM's "PV-args" parameter between "single" and empty.
+
+Usage: ${0##*/} VM
+
+VM    name label of the VM to be modified
+EOF
+    exit 2
+}
+
+[ $# -ne 1 ] && usage
+VM="$1"
+
+MYDIR=$(dirname $0)
+XS_FUNCTIONS="$MYDIR/xs-functions"
+if ! . "$XS_FUNCTIONS"; then
+    echo "Error while sourcing $XS_FUNCTIONS."
+    exit 1
+fi
+
+vm_uuid "$VM" || exit 1
+echo "VM UUID: $VM_UUID"
+PV_ARGS=$(xe vm-list params=PV-args uuid="$VM_UUID" --minimal)
+if [[ "$PV_ARGS" =~ single ]]; then
+    echo -e "Disabling single-user boot...\c"
+    CMD="xe vm-param-clear param-name=PV-args uuid=$VM_UUID"
+else
+    echo -e "Enabling single-user boot...\c"
+    CMD="xe vm-param-set PV-args=single uuid=$VM_UUID"
+fi
+if eval "$CMD"; then
+    echo "done."
+else
+    exit 1
+fi

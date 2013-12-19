@@ -1,0 +1,168 @@
+# -*- mode: shell-script -*-
+#
+# xs-functions: common functions for xs-* scripts
+#
+########################################################################
+# 
+# Functions for XenServer object queries
+#
+
+# get PIF UUID from device name (optional VLAN arg)
+function pif_uuid() {
+    [ -z "$1" ] && return 1
+    local VLAN=-1
+    [ -n "$2" ] && VLAN="$2"
+    PIF_UUID=$(xe pif-list device="$PIF" VLAN="$VLAN" --minimal)
+    if [ -z "$PIF_UUID" ]; then
+        echo "PIF \"$PIF\" not found"
+        return 1
+    fi
+    return 0
+}
+
+# get value of param name from VM UUID
+function vm_param() {
+    if [ "$#" -ne 2 ]; then
+        return 1
+    fi
+    local VM_UUID="$1"
+    local PARAM_NAME="$2"
+    if PARAM_VALUE=$(xe vm-param-get param-name="$PARAM_NAME" uuid="$VM_UUID" --minimal); then
+        return 0
+    else
+        return 1
+    fi
+}
+
+# get VM UUID from VM name label
+function vm_uuid() {
+    [ -z "$1" ] && return 1
+    VM_UUID=$(xe vm-list name-label="$1" --minimal)
+    if [ -z "$VM_UUID" ]; then
+        echo "VM \"$VM\" not found"
+        return 1
+    fi
+    return 0
+}
+
+# get network UUID from network name label
+function network_uuid() {
+    [ -z "$1" ] && return 1
+    NETWORK_UUID=$(xe network-list name-label="$1" --minimal)
+    if [ -z "$NETWORK_UUID" ]; then
+        echo "Network \"$NETWORK\" not found"
+        return 1
+    fi
+    return 0
+}
+
+# get array of VIF UUIDs from VM UUID
+function vm_vif_uuids() {
+    [ -z "$1" ] && return 1
+    VIF_UUIDS=( $(xe vif-list vm-uuid="$1" --minimal | sed -e 's/,/ /g') )
+}
+
+# get network UUID from VIF UUID
+function vif_network_uuid() {
+    [ -z "$1" ] && return 1
+    NETWORK_UUID=$(xe vif-param-get param-name=network-uuid uuid="$1")
+}
+
+# get VIF device from VIF UUID
+function vif_device() {
+    [ -z "$1" ] && return 1
+    VIF_DEVICE=$(xe vif-param-get param-name=device uuid="$1")
+}
+
+# get PIF VLAN from network UUID
+function network_pif_vlan() {
+    [ -z "$1" ] && return 1
+    PIF_VLAN=$(xe pif-list params=VLAN network-uuid="$1" --minimal)
+}
+
+# get host name label from host UUID
+function host_name() {
+    [ -z "$1" ] && return 1
+    HOST_NAME_LABEL=$(xe host-param-get param-name=name-label uuid="$1")
+}
+
+# get name label of host running VM or preferred host for VM or host
+# housing VM's primary VDI (assumed to be hda for HVM and xvda for
+# PV); include type of association (resident, affinity, SR) if a
+# second argument is passed
+function vm_host() {
+    [ -z "$1" ] && return 1
+    [ -n "$2" ] && local ASSOC=1 || ASSOC=0
+    VM_HOST=""
+    local VM_ASSOC PARAM_VALUE
+    # check for residency
+    vm_param "$VM_UUID" "resident-on"
+    if [ "$PARAM_VALUE" != "<not in database>" ]; then
+        host_name "$PARAM_VALUE"
+        VM_HOST="$HOST_NAME_LABEL"
+        (( ASSOC )) && VM_ASSOC=( "resident" )
+    fi
+    # check for affinity
+    if vm_param "$VM_UUID" "affinity" && \
+        [ "$PARAM_VALUE" != "<not in database>" ]; then
+        if [ -z "$VM_HOST" ]; then
+            host_name "$PARAM_VALUE"
+            VM_HOST="$HOST_NAME_LABEL"
+        fi
+        (( ASSOC )) && VM_ASSOC=( ${VM_ASSOC[*]} "affinity" )
+    fi
+    # check for local SR
+    local VDI_UUID=$(xe vbd-list params=vdi-uuid device=xvda vm-uuid="$VM_UUID" --minimal)
+    [ -z "$VDI_UUID" ] && VDI_UUID=$(xe vbd-list params=vdi-uuid device=hda vm-uuid="$VM_UUID" --minimal)
+    if [ -n "$VDI_UUID" ]; then 
+        local SR_UUID=$(xe vdi-list params=sr-uuid uuid=$VDI_UUID --minimal)
+        local SR_HOST=$(xe sr-list params=host uuid="$SR_UUID" --minimal)
+        if [ "$SR_HOST" != "<shared>" ]; then 
+            [ -z "$VM_HOST" ] && VM_HOST="$SR_HOST"
+            (( ASSOC )) && VM_ASSOC=( ${VM_ASSOC[*]} "SR" )
+        fi
+    fi
+
+    if [ -n "$VM_HOST" ]; then
+        (( ASSOC )) && VM_HOST="$VM_HOST ($(echo ${VM_ASSOC[*]} | sed 's/ /, /g'))"
+        return 0
+    else
+        return 1
+    fi
+}
+
+########################################################################
+# 
+# Functions for input validation
+#
+
+function valid_uuid() {
+    [ -z "$1" ] && return 1
+    echo "$1" | egrep -q '^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$'
+}
+
+function valid_integer() {
+    [ -z "$1" ] && return 1
+    echo "$1" | egrep -q '^[0-9]*$'
+}
+
+function valid_mac_address() {
+    [ -z "$1" ] && return 1
+    echo "$1" | egrep -q '[0-9a-fA-F][0-9a-fA-F]:[0-9a-fA-F][0-9a-fA-F]:[0-9a-fA-F][0-9a-fA-F]:[0-9a-fA-F][0-9a-fA-F]:[0-9a-fA-F][0-9a-fA-F]:[0-9a-fA-F][0-9a-fA-F]'
+}
+
+########################################################################
+#
+# Other functions
+#
+
+function prompt() {
+    echo -e "\n$1 [y/N]? \c"
+    local RESPONSE="n"
+    read RESPONSE
+    if echo "$RESPONSE" | egrep -q '^[Yy]'; then
+        return 0
+    else
+        return 1
+    fi
+}

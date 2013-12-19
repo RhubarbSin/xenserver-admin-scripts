@@ -1,0 +1,39 @@
+#!/bin/bash
+
+function usage() {
+    cat <<EOF
+
+Toggle a VM's "PV-args" parameter between network rescue boot and empty.
+
+Usage: ${0##*/} VM
+
+VM    name label of the VM to be modified
+EOF
+    exit 2
+}
+
+[ $# -ne 1 ] && usage
+VM="$1"
+
+MYDIR=$(dirname $0)
+XS_FUNCTIONS="$MYDIR/xs-functions"
+if ! . "$XS_FUNCTIONS"; then
+    echo "Error while sourcing $XS_FUNCTIONS."
+    exit 1
+fi
+
+vm_uuid "$VM" || exit 1
+echo "VM UUID: $VM_UUID"
+PV_ARGS=$(xe vm-list params=PV-args uuid="$VM_UUID" --minimal)
+if [[ "$PV_ARGS" =~ rescue ]]; then
+    echo -e "Disabling network rescue boot...\c"
+    CMD="xe vm-param-set PV-args= PV-bootloader=pygrub uuid=$VM_UUID"
+else
+    echo -e "Enabling network rescue boot...\c"
+    CMD="xe vm-param-set PV-args='ks=http://10.1.0.1/linux-install/centos/centos-rescue.ks rescue' PV-bootloader=eliloader uuid=$VM_UUID"
+fi
+if eval "$CMD"; then
+    echo "done."
+else
+    exit 1
+fi

@@ -1,0 +1,59 @@
+#!/bin/bash
+
+function usage() {
+    cat <<EOF
+
+Display a summary of VMs.
+
+Usage: ${0##*/} [-s] [-p] [-c]
+
+-s    short format: omit VM UUID
+-p    include all VMs in pool
+-c    include control domains (dom0)
+EOF
+    exit 2
+}
+
+SHORT=0
+POOL=0
+DOM0=0
+
+while getopts :spc OPT; do
+    case $OPT in
+        s)
+            SHORT=1
+            ;;
+        p)
+            POOL=1
+            ;;
+        c)
+            DOM0=1
+            ;;
+        *)
+            usage
+    esac
+done
+shift $(( OPTIND - 1 ))
+[ -n "$1" ] && usage
+
+MYDIR=$(dirname $0)
+XS_FUNCTIONS="$MYDIR/xs-functions"
+if ! . "$XS_FUNCTIONS"; then
+    echo "Error while sourcing $XS_FUNCTIONS."
+    exit 1
+fi
+
+VM_UUIDS=$(xe vm-list --minimal | sed -e 's/,/ /g')
+for VM_UUID in $VM_UUIDS; do
+    vm_param "$VM_UUID" "name-label" || continue
+    VM_NAME_LABEL="$PARAM_VALUE"
+    ! (( DOM0 )) && [[ "$VM_NAME_LABEL" =~ Control\ domain ]] && continue
+    vm_param "$VM_UUID" "power-state" || continue
+    VM_POWER_STATE="$PARAM_VALUE"
+    STRING=""
+    ! (( SHORT )) && STRING="$VM_UUID\t"
+    STRING="$STRING$VM_NAME_LABEL\t$VM_POWER_STATE"
+    vm_host "$VM_UUID" "YES" && STRING="$STRING\t$VM_HOST"
+    (( POOL )) || [ "$HOSTNAME" == $(echo "$VM_HOST" | cut -f1 -d' ') ] && \
+        echo -e "$STRING"
+done

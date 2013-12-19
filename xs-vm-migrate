@@ -1,0 +1,53 @@
+#!/bin/bash
+
+function usage() {
+    cat <<EOF
+
+Migrate a VM using local storage.
+
+Usage: ${0##*/} -h HOST -v VM
+
+-h    name label (host name) of XenServer host to which to migrate the VM
+-v    name label of the VM
+EOF
+    exit 2
+}
+
+while getopts :h:v: OPT; do
+    case $OPT in
+        h)
+            HOST="$OPTARG"
+            ;;
+        v)
+            VM="$OPTARG"
+            ;;
+        *)
+            usage
+    esac
+done
+shift $(( OPTIND - 1 ))
+[ -n "$1" ] && usage
+[ -z "$HOST" ] || [ -z "$VM" ] && usage
+
+HOST_UUID=$(xe host-list name-label="$HOST" --minimal)
+if [ -z "$HOST_UUID" ]; then
+    echo "Host \"$HOST\" not found"
+    exit 1
+fi
+echo "HOST UUID: $HOST_UUID"
+
+SR_UUID=$(xe sr-list name-label='Local storage' host="$HOST" --minimal)
+if [ -z "$SR_UUID" ]; then
+    echo "Storage repository \"Local storage\" on host $HOST not found"
+    exit 1
+fi
+echo "SR UUID: $SR_UUID"
+
+VM_UUID=$(xe vm-list name-label="$VM" --minimal)
+if [ -z "$VM_UUID" ]; then
+    echo "VM \"$VM\" not found"
+    exit 1
+fi
+echo "VM UUID: $VM_UUID"
+
+xe vm-migrate live=true remote-master=10.0.1.1 remote-username=root remote-password='root!!!' destination-sr-uuid="$SR_UUID" host-uuid="$HOST_UUID" vm="$VM_UUID"

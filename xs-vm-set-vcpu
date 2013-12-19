@@ -1,0 +1,56 @@
+#!/bin/bash
+
+
+function usage() {
+    cat <<EOF
+
+Set a VM's VCPU parameters.
+
+Usage: ${0##*/} -m VCPUS_MAX -s VCPUS_AT_STARTUP -v VM
+EOF
+    exit 2
+}
+
+while getopts :m:s:v: OPT; do
+    case $OPT in
+        m)
+            VCPUS_MAX="$OPTARG"
+            ;;
+        s)
+            VCPUS_AT_STARTUP="$OPTARG"
+            ;;
+        v)
+            VM="$OPTARG"
+            ;;
+        *)
+            usage
+    esac
+done
+shift $(( OPTIND - 1 ))
+[ -n "$1" ] && usage
+[ -z "$VM" ] || [ -z "$VCPUS_MAX" ] || [ -z "$VCPUS_AT_STARTUP" ] && usage
+
+MYDIR=$(dirname $0)
+XS_FUNCTIONS="$MYDIR/xs-functions"
+if ! . "$XS_FUNCTIONS"; then
+    echo "Error while sourcing $XS_FUNCTIONS."
+    exit 1
+fi
+
+VM_UUID=$(xe vm-list name-label="$VM" --minimal)
+if [ -z "$VM_UUID" ]; then
+    echo "VM \"$VM\" not found"
+    exit 1
+fi
+echo "VM UUID: $VM_UUID"
+
+CMD="xe vm-param-set uuid=$VM_UUID"
+vm_param "$VM_UUID" "VCPUs-max"
+if [ "$VCPUS_AT_STARTUP" -gt "$PARAM_VALUE" ]; then
+    CMD="$CMD VCPUs-max=$VCPUS_MAX"
+    CMD="$CMD VCPUs-at-startup=$VCPUS_AT_STARTUP"
+else
+    CMD="$CMD VCPUs-at-startup=$VCPUS_AT_STARTUP"
+    CMD="$CMD VCPUs-max=$VCPUS_MAX"
+fi
+eval "$CMD"

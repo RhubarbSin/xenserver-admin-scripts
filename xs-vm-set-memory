@@ -1,0 +1,47 @@
+#!/bin/bash
+
+function usage() {
+    cat <<EOF
+
+Set a VM's memory parameters.
+
+Usage: ${0##*/} [-s STATIC_MIN] [-S STATIC_MAX] [-d DYNAMIC_MIN] [-D DYNAMIC_MAX] -v VM
+EOF
+    exit 2
+}
+
+while getopts :s:S:d:D:v: OPT; do
+    case $OPT in
+        s)
+            STATIC_MIN="$OPTARG"
+            ;;
+        S)
+            STATIC_MAX="$OPTARG"
+            ;;
+        d)
+            DYNAMIC_MIN="$OPTARG"
+            ;;
+        D)
+            DYNAMIC_MAX="$OPTARG"
+            ;;
+        v)
+            VM="$OPTARG"
+            ;;
+        *)
+            usage
+    esac
+done
+shift $(( OPTIND - 1 ))
+[ -n "$1" ] && usage
+[ -z "$VM" ] && usage
+[ -z "$STATIC_MIN" ] && [ -z "$STATIC_MIN" ] && \
+    [ -z "$DYNAMIC_MIN" ] && [ -z "$DYNAMIC_MIN" ] && usage
+
+VM_UUID=$(xe vm-list name-label="$VM" --minimal)
+if [ -z "$VM_UUID" ]; then
+    echo "VM \"$VM\" not found"
+    exit 1
+fi
+echo "VM UUID: $VM_UUID"
+
+xe vm-param-set memory-static-max="$STATIC_MAX" memory-dynamic-max="$DYNAMIC_MAX" memory-dynamic-min="$DYNAMIC_MIN" memory-static-min="$STATIC_MIN" uuid="$VM_UUID"

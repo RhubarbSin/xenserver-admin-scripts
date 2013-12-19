@@ -1,0 +1,4 @@
+
+* assumptions
+  - name label 'Local storage' if using -h and -s
+  - host name label same as hostname

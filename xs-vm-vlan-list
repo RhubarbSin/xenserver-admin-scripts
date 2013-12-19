@@ -1,0 +1,33 @@
+#!/bin/bash
+
+function usage() {
+    cat <<EOF
+
+Show the VLAN tags of the bridges of the PIFs of the networks of the VM's VIFs.
+
+Usage: ${0##*/} VM
+
+VM    name label of the VM to be inspected
+EOF
+    exit 2
+}
+
+[ "$#" -ne 1 ] && usage
+VM="$1"
+
+MYDIR=$(dirname $0)
+XS_FUNCTIONS="$MYDIR/xs-functions"
+if ! . "$XS_FUNCTIONS"; then
+    echo "Error while sourcing $XS_FUNCTIONS."
+    exit 1
+fi
+
+vm_uuid "$VM" || exit 1
+vm_vif_uuids "$VM_UUID"
+[ -z "$VIF_UUIDS" ] && exit 0
+for VIF_UUID in ${VIF_UUIDS[*]}; do
+    vif_device "$VIF_UUID"
+    vif_network_uuid "$VIF_UUID"
+    network_pif_vlan "$NETWORK_UUID"
+    echo "eth$VIF_DEVICE: VLAN $PIF_VLAN"
+done

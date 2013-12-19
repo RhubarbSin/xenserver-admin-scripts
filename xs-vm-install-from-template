@@ -347,6 +347,16 @@ function install_from_template() {
     echo "VM UUID: $VM_UUID"
 }
 
+function set_vcpus() {
+    echo -e "Setting VCPUs...\c"
+    CMD="xe vm-param-set uuid=$VM_UUID VCPUs-max=$VCPUS VCPUs-at-startup=$VCPUS"
+    [ -n "$LOG" ] && echo "$CMD" >> "$LOG"
+    eval "$CMD"
+    if [ $? -ne 0 ]; then
+        exit $?
+    fi
+    echo "done."
+}
 function set_memory_limits() {
     echo -e "Setting memory limits...\c"
     CMD="xe vm-memory-limits-set uuid=$VM_UUID static-min=${MEMORY_SIZE}MiB static-max=${MEMORY_SIZE}MiB dynamic-min=${MEMORY_SIZE}MiB dynamic-max=${MEMORY_SIZE}MiB"
