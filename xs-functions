@@ -12,8 +12,8 @@ QUIET=0
 # Functions for XenServer object queries
 #
 
-# get VM UUID or array of VM UUIDs from VM name label; set global
-# VM_UUID or VM_UUIDs
+# get VM UUID or array of VM UUIDs from VM name label; set globals
+# VM_UUID and VM_UUIDs
 function vm_uuid() {
     [ -z "$1" ] && return 1
     VM_UUID=""
@@ -33,7 +33,7 @@ function vm_uuid() {
 }
 
 # get network UUID or array of network UUIDs from network name label;
-# set global VM_UUID or VM_UUIDs
+# set globals NETWORK_UUID and NETWORK_UUIDs
 function network_uuid() {
     [ -z "$1" ] && return 1
     NETWORK_UUID=""
