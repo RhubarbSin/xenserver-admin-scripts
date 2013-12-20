@@ -34,6 +34,11 @@ function vm_param() {
     fi
 }
 
+function use_caps() {
+    echo "$1" | egrep -q '(vm|vdi|vif|cd|sr|pbd|pif|vgpu|vlan|gpu)'
+    return $?
+}
+
 # get UUID from name label
 function uuid() {
     if [ "$#" -ne 3 ]; then
@@ -42,12 +47,17 @@ function uuid() {
     local OBJECT="$1"
     local NAME_LABEL="$2"
     local UUID_REF="$3"
+    if use_caps "$OBJECT"; then
+        local OBJ_NAME="$(echo $OBJECT | tr 'a-z' 'A-Z')"
+    else
+        local OBJ_NAME="$OBJECT"
+    fi
     eval $UUID_REF=$(xe "$OBJECT-list" name-label="$NAME_LABEL" --minimal)
     if [ -z "${!UUID_REF}" ]; then
-        echo "$OBJECT not found"
+        echo "$OBJ_NAME not found"
         return 1
     elif [[ "${!UUID_REF}" =~ , ]]; then
-        echo "Multiple $(echo ${OBJECT} | tr 'a-z' 'A-Z')s found"
+        echo "Multiple ${OBJ_NAME}s found"
         return 2
     else
         return 0
