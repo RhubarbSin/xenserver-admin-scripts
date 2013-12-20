@@ -3,7 +3,8 @@
 # xs-functions: common functions for xs-* scripts
 #
 
-# functions defined here will not emit messages if global QUIET is non-zero
+# functions defined here will not emit messages (other than those
+# emanating from xe invocations) if global QUIET is non-zero
 QUIET=0
 
 ########################################################################
@@ -11,35 +12,8 @@ QUIET=0
 # Functions for XenServer object queries
 #
 
-# get PIF UUID from device name (optional VLAN arg)
-function pif_uuid() {
-    [ -z "$1" ] && return 1
-    local PIF="$1"
-    local VLAN=-1
-    [ -n "$2" ] && VLAN="$2"
-    PIF_UUID=$(xe pif-list device="$PIF" VLAN="$VLAN" --minimal)
-    if [ -z "$PIF_UUID" ]; then
-        (( QUIET )) || echo "PIF not found"
-        return 1
-    fi
-    return 0
-}
-
-# get value of param name from VM UUID
-function vm_param() {
-    if [ "$#" -ne 2 ]; then
-        return 1
-    fi
-    local VM_UUID="$1"
-    local PARAM_NAME="$2"
-    if PARAM_VALUE=$(xe vm-param-get param-name="$PARAM_NAME" uuid="$VM_UUID" --minimal); then
-        return 0
-    else
-        return 1
-    fi
-}
-
-# get VM UUID or array of VM UUIDs from VM name label
+# get VM UUID or array of VM UUIDs from VM name label; set global
+# VM_UUID or VM_UUIDs
 function vm_uuid() {
     [ -z "$1" ] && return 1
     VM_UUID=""
@@ -58,51 +32,88 @@ function vm_uuid() {
     fi
 }
 
-# get network UUID from network name label
+# get network UUID or array of network UUIDs from network name label;
+# set global VM_UUID or VM_UUIDs
 function network_uuid() {
     [ -z "$1" ] && return 1
-    NETWORK_UUID=$(xe network-list name-label="$1" --minimal)
-    if [ -z "$NETWORK_UUID" ]; then
-        echo "Network \"$NETWORK\" not found"
+    NETWORK_UUID=""
+    NETWORK_UUIDS=""
+    local UUID=$(xe network-list name-label="$1" --minimal)
+    if [ -z "$UUID" ]; then
+        (( QUIET )) || echo "network not found"
         return 1
+    elif [[ "$UUID" =~ , ]]; then
+        NETWORK_UUIDS=( $(echo "$UUID" | sed -e 's/,/ /g') )
+        (( QUIET )) || echo "Multiple networks found"
+        return 2
+    else
+        NETWORK_UUID="$UUID"
+        return 0
     fi
-    return 0
 }
 
-# get array of VIF UUIDs from VM UUID
+# get PIF UUID from device name (optional VLAN arg); set global
+# PIF_UUID
+function pif_uuid() {
+    [ -z "$1" ] && return 1
+    local PIF="$1"
+    local VLAN=-1
+    [ -n "$2" ] && VLAN="$2"
+    PIF_UUID=$(xe pif-list device="$PIF" VLAN="$VLAN" --minimal)
+    if [ -z "$UUID" ]; then
+        (( QUIET )) || echo "PIF not found"
+        return 1
+    else
+        return 0
+    fi
+}
+
+# get value of param name from VM UUID; set global PARAM_VALUE
+function vm_param() {
+    [ -z "$1" ] || [ -z "$2" ] && return 1
+    PARAM_VALUE=$(xe vm-param-get param-name="$1" uuid="$2" --minimal)
+    return $?
+}
+
+# get array of VIF UUIDs from VM UUID; set global VIF_UUIDS
 function vm_vif_uuids() {
     [ -z "$1" ] && return 1
     VIF_UUIDS=( $(xe vif-list vm-uuid="$1" --minimal | sed -e 's/,/ /g') )
+    return $?
 }
 
-# get network UUID from VIF UUID
+# get network UUID from VIF UUID; set global NETWORK_UUID
 function vif_network_uuid() {
     [ -z "$1" ] && return 1
     NETWORK_UUID=$(xe vif-param-get param-name=network-uuid uuid="$1")
+    return $?
 }
 
-# get VIF device from VIF UUID
+# get VIF device from VIF UUID; set global VIF_DEVICE
 function vif_device() {
     [ -z "$1" ] && return 1
     VIF_DEVICE=$(xe vif-param-get param-name=device uuid="$1")
+    return $?
 }
 
-# get PIF VLAN from network UUID
+# get PIF VLAN from network UUID; set global PIF_VLAN
 function network_pif_vlan() {
     [ -z "$1" ] && return 1
     PIF_VLAN=$(xe pif-list params=VLAN network-uuid="$1" --minimal)
+    return $?
 }
 
-# get host name label from host UUID
+# get host name label from host UUID; set global HOST_NAME_LABEL
 function host_name() {
     [ -z "$1" ] && return 1
     HOST_NAME_LABEL=$(xe host-param-get param-name=name-label uuid="$1")
+    return $?
 }
 
 # get name label of host running VM or preferred host for VM or host
 # housing VM's primary VDI (assumed to be hda for HVM and xvda for
 # PV); include type of association (resident, affinity, SR) if a
-# second argument is passed
+# second argument is passed; XXX NEEDS WORK
 function vm_host() {
     [ -z "$1" ] && return 1
     [ -n "$2" ] && local ASSOC=1 || ASSOC=0
