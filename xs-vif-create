@@ -12,6 +12,13 @@ EOF
     exit 2
 }
 
+MYDIR=$(dirname $0)
+XS_FUNCTIONS="$MYDIR/xs-functions"
+if ! . "$XS_FUNCTIONS"; then
+    echo "Error while sourcing $XS_FUNCTIONS."
+    exit 1
+fi
+
 while getopts :v:n:d:m: OPT; do
     case $OPT in
         v)
@@ -32,15 +39,8 @@ while getopts :v:n:d:m: OPT; do
 done
 shift $(( OPTIND - 1 ))
 [ -n "$1" ] && usage
-[ -z "$VM" ] || [ -z "$NETWORK" ] || [ -z "$NETWORK" ] || \
-    [ -z "$NETWORK" ] && usage
-
-MYDIR=$(dirname $0)
-XS_FUNCTIONS="$MYDIR/xs-functions"
-if ! . "$XS_FUNCTIONS"; then
-    echo "Error while sourcing $XS_FUNCTIONS."
-    exit 1
-fi
+REQUIRED=( "VM" "NETWORK" "DEVICE" )
+have_required "${REQUIRED[@]}" || usage
 
 if [ -n "$MACADDRESS" ]; then
     if ! valid_mac_address "$MACADDRESS"; then
