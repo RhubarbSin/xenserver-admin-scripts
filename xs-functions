@@ -2,6 +2,10 @@
 #
 # xs-functions: common functions for xs-* scripts
 #
+
+# functions defined here will not emit messages if global QUIET is non-zero
+QUIET=0
+
 ########################################################################
 # 
 # Functions for XenServer object queries
@@ -10,11 +14,12 @@
 # get PIF UUID from device name (optional VLAN arg)
 function pif_uuid() {
     [ -z "$1" ] && return 1
+    local PIF="$1"
     local VLAN=-1
     [ -n "$2" ] && VLAN="$2"
     PIF_UUID=$(xe pif-list device="$PIF" VLAN="$VLAN" --minimal)
     if [ -z "$PIF_UUID" ]; then
-        echo "PIF \"$PIF\" not found"
+        (( QUIET )) || echo "PIF not found"
         return 1
     fi
     return 0
@@ -34,45 +39,23 @@ function vm_param() {
     fi
 }
 
-function use_caps() {
-    echo "$1" | egrep -q '(vm|vdi|vif|cd|sr|pbd|pif|vgpu|vlan|gpu)'
-    return $?
-}
-
-# get UUID from name label
-function uuid() {
-    if [ "$#" -ne 3 ]; then
-        return 1
-    fi
-    local OBJECT="$1"
-    local NAME_LABEL="$2"
-    local UUID_REF="$3"
-    if use_caps "$OBJECT"; then
-        local OBJ_NAME="$(echo $OBJECT | tr 'a-z' 'A-Z')"
-    else
-        local OBJ_NAME="$OBJECT"
-    fi
-    eval $UUID_REF=$(xe "$OBJECT-list" name-label="$NAME_LABEL" --minimal)
-    if [ -z "${!UUID_REF}" ]; then
-        echo "$OBJ_NAME not found"
-        return 1
-    elif [[ "${!UUID_REF}" =~ , ]]; then
-        echo "Multiple ${OBJ_NAME}s found"
-        return 2
-    else
-        return 0
-    fi
-}
-
-# get VM UUID from VM name label
+# get VM UUID or array of VM UUIDs from VM name label
 function vm_uuid() {
     [ -z "$1" ] && return 1
-    VM_UUID=$(xe vm-list name-label="$1" --minimal)
-    if [ -z "$VM_UUID" ]; then
-        echo "VM \"$VM\" not found"
+    VM_UUID=""
+    VM_UUIDS=""
+    local UUID=$(xe vm-list name-label="$1" --minimal)
+    if [ -z "$UUID" ]; then
+        (( QUIET )) || echo "VM not found"
         return 1
+    elif [[ "$UUID" =~ , ]]; then
+        VM_UUIDS=( $(echo "$UUID" | sed -e 's/,/ /g') )
+        (( QUIET )) || echo "Multiple VMs found"
+        return 2
+    else
+        VM_UUID="$UUID"
+        return 0
     fi
-    return 0
 }
 
 # get network UUID from network name label
