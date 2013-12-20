@@ -5,10 +5,17 @@ function usage() {
 
 Set a VM's memory parameters.
 
-Usage: ${0##*/} [-s STATIC_MIN] [-S STATIC_MAX] [-d DYNAMIC_MIN] [-D DYNAMIC_MAX] -v VM
+Usage: ${0##*/} -s STATIC_MIN -S STATIC_MAX -d DYNAMIC_MIN -D DYNAMIC_MAX -v VM
 EOF
     exit 2
 }
+
+MYDIR=$(dirname $0)
+XS_FUNCTIONS="$MYDIR/xs-functions"
+if ! . "$XS_FUNCTIONS"; then
+    echo "Error while sourcing $XS_FUNCTIONS."
+    exit 1
+fi
 
 while getopts :s:S:d:D:v: OPT; do
     case $OPT in
@@ -33,9 +40,8 @@ while getopts :s:S:d:D:v: OPT; do
 done
 shift $(( OPTIND - 1 ))
 [ -n "$1" ] && usage
-[ -z "$VM" ] && usage
-[ -z "$STATIC_MIN" ] && [ -z "$STATIC_MIN" ] && \
-    [ -z "$DYNAMIC_MIN" ] && [ -z "$DYNAMIC_MIN" ] && usage
+REQUIRED=( "STATIC_MIN" "STATIC_MAX" "DYNAMIC_MIN" "DYNAMIC_MAX" "VM" )
+have_required "${REQUIRED[@]}" || usage
 
 VM_UUID=$(xe vm-list name-label="$VM" --minimal)
 if [ -z "$VM_UUID" ]; then

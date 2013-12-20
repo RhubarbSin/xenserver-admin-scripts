@@ -12,6 +12,13 @@ EOF
     exit 2
 }
 
+MYDIR=$(dirname $0)
+XS_FUNCTIONS="$MYDIR/xs-functions"
+if ! . "$XS_FUNCTIONS"; then
+    echo "Error while sourcing $XS_FUNCTIONS."
+    exit 1
+fi
+
 while getopts :p:v:n:d: OPT; do
     case $OPT in
         p)
@@ -32,14 +39,8 @@ while getopts :p:v:n:d: OPT; do
 done
 shift $(( OPTIND - 1 ))
 [ -n "$1" ] && usage
-[ -z "$PIF" ] || [ -z "$VLAN" ] || [ -z "$NETWORK" ] && usage
-
-MYDIR=$(dirname $0)
-XS_FUNCTIONS="$MYDIR/xs-functions"
-if ! . "$XS_FUNCTIONS"; then
-    echo "Error while sourcing $XS_FUNCTIONS."
-    exit 1
-fi
+REQUIRED=( "PIF" "VLAN" "NETWORK" )
+have_required "${REQUIRED[@]}" || usage
 
 pif_uuid "$PIF" || exit 1
 echo "PIF UUID: $PIF_UUID"

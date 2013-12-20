@@ -11,6 +11,13 @@ EOF
     exit 2
 }
 
+MYDIR=$(dirname $0)
+XS_FUNCTIONS="$MYDIR/xs-functions"
+if ! . "$XS_FUNCTIONS"; then
+    echo "Error while sourcing $XS_FUNCTIONS."
+    exit 1
+fi
+
 while getopts :m:s:v: OPT; do
     case $OPT in
         m)
@@ -28,14 +35,9 @@ while getopts :m:s:v: OPT; do
 done
 shift $(( OPTIND - 1 ))
 [ -n "$1" ] && usage
-[ -z "$VM" ] || [ -z "$VCPUS_MAX" ] || [ -z "$VCPUS_AT_STARTUP" ] && usage
+REQUIRED=( "VM" "VCPUS_MAX" "VCPUS_AT_STARTUP" )
+have_required "${REQUIRED[@]}" || usage
 
-MYDIR=$(dirname $0)
-XS_FUNCTIONS="$MYDIR/xs-functions"
-if ! . "$XS_FUNCTIONS"; then
-    echo "Error while sourcing $XS_FUNCTIONS."
-    exit 1
-fi
 
 VM_UUID=$(xe vm-list name-label="$VM" --minimal)
 if [ -z "$VM_UUID" ]; then
