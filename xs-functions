@@ -34,6 +34,26 @@ function vm_param() {
     fi
 }
 
+# get UUID from name label
+function uuid() {
+    if [ "$#" -ne 3 ]; then
+        return 1
+    fi
+    local OBJECT="$1"
+    local NAME_LABEL="$2"
+    local UUID_REF="$3"
+    eval $UUID_REF=$(xe "$OBJECT-list" name-label="$NAME_LABEL" --minimal)
+    if [ -z "${!UUID_REF}" ]; then
+        echo "$OBJECT not found"
+        return 1
+    elif [[ "${!UUID_REF}" =~ , ]]; then
+        echo "Multiple $(echo ${OBJECT} | tr 'a-z' 'A-Z')s found"
+        return 2
+    else
+        return 0
+    fi
+}
+
 # get VM UUID from VM name label
 function vm_uuid() {
     [ -z "$1" ] && return 1
