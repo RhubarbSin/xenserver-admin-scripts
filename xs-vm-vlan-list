@@ -12,7 +12,7 @@ EOF
     exit 2
 }
 
-[ "$#" -ne 1 ] && usage
+[ -z "$1" ] || [ "$#" -gt 1 ] && usage
 VM="$1"
 
 MYDIR=$(dirname $0)
@@ -29,5 +29,5 @@ for VIF_UUID in ${VIF_UUIDS[*]}; do
     vif_device "$VIF_UUID"
     vif_network_uuid "$VIF_UUID"
     network_pif_vlan "$NETWORK_UUID"
-    echo "eth$VIF_DEVICE: VLAN $PIF_VLAN"
+    echo "$VIF_DEVICE: VLAN $PIF_VLAN"
 done
