@@ -28,31 +28,44 @@ shift $(( OPTIND - 1 ))
 [ -z "$1" ] || [ "$#" -gt 1 ] && usage
 VM="$1"
 
-VM_UUID=$(xe vm-list params=uuid name-label=$VM --minimal)
-if [ -z "$VM_UUID" ]; then
-    TEMPLATE_UUID=$(xe template-list params=uuid name-label=$VM --minimal)
-    if [ -z "$TEMPLATE_UUID" ]; then
-        echo "VM \"$VM\" not found"
-        exit 1
-    else
+MYDIR=$(dirname $0)
+XS_FUNCTIONS="$MYDIR/xs-functions"
+if ! . "$XS_FUNCTIONS"; then
+    echo "Error while sourcing $XS_FUNCTIONS."
+    exit 1
+fi
+
+QUIET=1 vm_uuid "$VM"
+case $? in
+    0)
+        if (( SHOW )); then
+            IS="is not"
+        else
+            if xe vm-param-set is-a-template=true uuid="$VM_UUID"; then
+                IS="now is"
+            else
+                exit 1
+            fi
+        fi
+        ;;
+    1)
+        template_uuid "$VM" || exit 1
         if (( SHOW )); then
             IS="is"
         else
             if xe template-param-set is-a-template=false uuid="$TEMPLATE_UUID"; then
                 IS="now is not"
+            else
+                exit 1
             fi
         fi
-    fi
-else
-    if (( SHOW )); then
-        IS="is not"
-    else
-        if xe vm-param-set is-a-template=true uuid="$VM_UUID"; then
-            IS="now is"
-        fi
-    fi
-fi
+        ;;
+    2)
+        vm_uuid "$VM"  # because first vm_uuid() call suppressed output
+        exit 1
+        ;;
+    *)
+        exit $?
+esac
 
-if [ -n "$IS" ]; then
-    echo "$VM $IS a template."
-fi
+echo "$VM $IS a template."

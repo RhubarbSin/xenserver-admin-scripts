@@ -13,58 +13,90 @@ EOF
     exit 2
 }
 
-function vm_destroy() {
+function destroy() {
+    [ -z "$1" ] && return 1
+    local VM_UUID="$1"
+    echo "VM UUID: $VM_UUID"
+    if (( INTERACTIVE )); then
+        prompt "Remove VM" || return 0
+    fi
     echo -e "Getting power state of VM...\c"
-    VM_POWER_STATE=$(xe vm-param-get param-name=power-state uuid=$VM_UUID)
-    echo "$VM_POWER_STATE"
-
-    if [ "$VM_POWER_STATE" != halted ]; then
+    vm_param "$VM_UUID" "power-state" || return 1
+    echo "$PARAM_VALUE."
+    if [ "$PARAM_VALUE" != "halted" ]; then
         echo -e "Shutting down VM...\c"
-        if ! xe vm-shutdown vm="$1" > /dev/null 2>&1; then
-            xe vm-shutdown vm="$1" --force
+        if ! xe vm-shutdown uuid="$VM_UUID" > /dev/null 2>&1; then
+            xe vm-shutdown vm="$VM_UUID" --force
         fi
+        xe event-wait class=vm power-state=halted uuid="$VM_UUID"
         echo "done."
     fi
+    destroy_vdis "$VM_UUID"
+    destroy_vm "$VM_UUID"
+}
 
-    echo -e "Getting UUID of VBD's VDI...\c"
-    VDI_UUID=$(xe vbd-list vm-uuid=$VM_UUID params=vdi-uuid device=hda --minimal)
-    echo "$VDI_UUID"
+function destroy_vdis() {
+    [ -z "$1" ] && return 1
+    local VM_UUID="$1"
+    vm_vbd_uuids "$VM_UUID" || return 1
+    local INDEX=0
+    local VBD_UUID
+    for VBD_UUID in ${VBD_UUIDS[@]}; do
+        echo "VBD UUID: $VBD_UUID"
+        vbd_vdi_uuid "$VBD_UUID" || return 1
+        [ "$VDI_UUID" == "<not in database>" ] && continue
+        vdi_param "$VDI_UUID" "read-only" || return 1
+        [ "$PARAM_VALUE" == "true" ] && continue
+        echo "VDI UUID: $VDI_UUID"
+        echo -e "Destroying VDI...\c"
+        xe vdi-destroy uuid="$VDI_UUID" || return 1
+        echo "done."
+    done
+}
 
-    echo -e "Destroying VDI...\c"
-    xe vdi-destroy uuid=$VDI_UUID
-    echo "done."
-
+function destroy_vm() {
     echo -e "Destroying VM...\c"
-    xe vm-destroy uuid=$VM_UUID
+    xe vm-destroy uuid=$VM_UUID || return 1
     echo "done."
 }
 
-########################################################################
-#
-# Main
-#
+INTERACTIVE=0
 
-if [ $# -ne 1 ]; then
-    echo "Usage: $0 VM_NAME_LABEL"
-    exit
-fi
+while getopts :i OPT; do
+    case $OPT in
+        i)
+            INTERACTIVE=1
+            ;;
+        *)
+            usage
+    esac
+done
+shift $(( OPTIND - 1 ))
+[ -z "$1" ] || [ "$#" -gt 1 ] && usage
+VM="$1"
 
-echo -e "Getting UUID of VM...\c"
-VM_UUIDS=$(xe vm-list name-label="$1" params=uuid --minimal)
-if [ -z "$VM_UUIDS" ]; then
-    echo "cannot find VM named \"$1\""
+MYDIR=$(dirname $0)
+XS_FUNCTIONS="$MYDIR/xs-functions"
+if ! . "$XS_FUNCTIONS"; then
+    echo "Error while sourcing $XS_FUNCTIONS."
     exit 1
 fi
-echo "$VM_UUIDS"
-if echo "$VM_UUIDS" | grep -q ,; then
-    echo -e "\nFound multiple VMs named \"$1\"; destroy them all [y/N]? \c"
-    read ALL
-    if ! echo "$ALL" | egrep -q '^[Yy]'; then
-        exit 1
-    fi
-fi
 
-VM_UUIDS=$(echo "$VM_UUIDS" | sed -e 's/,/ /'g)
-for VM_UUID in $VM_UUIDS; do
-    vm_destroy $VM_UUID
-done
+vm_uuid "$VM"
+case $? in
+    0)
+        destroy "$VM_UUID"
+        ;;
+    1)
+        exit 1
+        ;;
+    2)
+        for VM_UUID in ${VM_UUIDS[@]}; do
+            destroy "$VM_UUID"
+        done
+        ;;
+    *)
+        exit $?
+esac
+
+exit 0

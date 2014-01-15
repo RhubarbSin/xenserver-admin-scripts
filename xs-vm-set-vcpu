@@ -38,12 +38,7 @@ shift $(( OPTIND - 1 ))
 REQUIRED=( "VM" "VCPUS_MAX" "VCPUS_AT_STARTUP" )
 have_required "${REQUIRED[@]}" || usage
 
-
-VM_UUID=$(xe vm-list name-label="$VM" --minimal)
-if [ -z "$VM_UUID" ]; then
-    echo "VM \"$VM\" not found"
-    exit 1
-fi
+vm_uuid "$VM" || exit 1
 echo "VM UUID: $VM_UUID"
 
 CMD="xe vm-param-set uuid=$VM_UUID"

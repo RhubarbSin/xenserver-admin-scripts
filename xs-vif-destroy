@@ -42,7 +42,7 @@ echo "VM UUID: $VM_UUID"
 VIF_UUIDS=$(xe vif-list vm-uuid="$VM_UUID" --minimal | sed -e 's/,/ /g')
 for VIF_UUID in $VIF_UUIDS; do
     echo -e "\nVIF UUID: $VIF_UUID"
-    if (( $INTERACTIVE )); then
+    if (( INTERACTIVE )); then
         DEVICE=$(xe vif-param-get param-name=device uuid="$VIF_UUID" --minimal)
         prompt "Remove device $DEVICE" || continue
     fi

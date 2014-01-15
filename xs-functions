@@ -7,6 +7,12 @@
 # emanating from xe invocations) if global QUIET is non-zero
 QUIET=0
 
+if ! which xe > /dev/null 2>&1; then
+    echo "xe is not in your shell's path."
+    exit 1
+fi
+[ -z "$XE_EXTRA_ARGS" ] && export XE_EXTRA_ARGS="server=${XE_SERVER=127.0.0.1},port=${XE_PORT=443},username=${XE_USERNAME=root},password=${XE_PASSWORD=root!!!}"
+
 ########################################################################
 # 
 # Functions for XenServer object queries
@@ -48,6 +54,26 @@ function network_uuid() {
         return 2
     else
         NETWORK_UUID="$UUID"
+        return 0
+    fi
+}
+
+# get template UUID or array of template UUIDs from template name label;
+# set globals TEMPLATE_UUID and TEMPLATE_UUIDs
+function template_uuid() {
+    [ -z "$1" ] && return 1
+    TEMPLATE_UUID=""
+    TEMPLATE_UUIDS=""
+    local UUID=$(xe template-list name-label="$1" --minimal)
+    if [ -z "$UUID" ]; then
+        (( QUIET )) || echo "template not found"
+        return 1
+    elif [[ "$UUID" =~ , ]]; then
+        TEMPLATE_UUIDS=( $(echo "$UUID" | sed -e 's/,/ /g') )
+        (( QUIET )) || echo "Multiple templates found"
+        return 2
+    else
+        TEMPLATE_UUID="$UUID"
         return 0
     fi
 }
@@ -202,7 +228,7 @@ function valid_mac_address() {
 #
 
 function prompt() {
-    echo -e "\n$1 [y/N]? \c"
+    echo -e "$1 [y/N]? \c"
     local RESPONSE="n"
     read RESPONSE
     if echo "$RESPONSE" | egrep -q '^[Yy]'; then

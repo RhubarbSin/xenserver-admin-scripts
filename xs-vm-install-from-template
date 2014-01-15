@@ -671,7 +671,7 @@ function main() {
     get_all_parameters
     display_and_confirm
     perform_installation
-    if (( $START_NOW )); then
+    if (( START_NOW )); then
         start_vm
         connect_to_console
     fi

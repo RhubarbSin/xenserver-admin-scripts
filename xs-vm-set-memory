@@ -43,11 +43,10 @@ shift $(( OPTIND - 1 ))
 REQUIRED=( "STATIC_MIN" "STATIC_MAX" "DYNAMIC_MIN" "DYNAMIC_MAX" "VM" )
 have_required "${REQUIRED[@]}" || usage
 
-VM_UUID=$(xe vm-list name-label="$VM" --minimal)
-if [ -z "$VM_UUID" ]; then
-    echo "VM \"$VM\" not found"
-    exit 1
-fi
+vm_uuid "$VM" || exit 1
 echo "VM UUID: $VM_UUID"
 
-xe vm-param-set memory-static-max="$STATIC_MAX" memory-dynamic-max="$DYNAMIC_MAX" memory-dynamic-min="$DYNAMIC_MIN" memory-static-min="$STATIC_MIN" uuid="$VM_UUID"
+xe vm-param-set memory-static-max="$STATIC_MAX" \
+    memory-dynamic-max="$DYNAMIC_MAX" \
+    memory-dynamic-min="$DYNAMIC_MIN" \
+    memory-static-min="$STATIC_MIN" uuid="$VM_UUID"
