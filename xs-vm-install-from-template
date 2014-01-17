@@ -13,9 +13,8 @@
 # determine the values for the distribution, version, and architecture
 # from the template's name description if they are not specified on
 # the command line; specifying them allows overriding of the values
-# derived from the template. If the kickstart or preseed URL is null,
-# none will be used. The only way to set auto power-on for the VM is
-# via the "-b" command-line option.
+# derived from the template. If the kickstart or preseed URL is an
+# empty string, none will be used.
 #
 # TODO:
 #   - support Debian & Ubuntu
@@ -55,7 +54,6 @@ Usage: ${0##*/} [OPTION] [...]
 -i    INSTALLATION REPOSITORY URL
 -k    KICKSTART FILE URL
 -r    PRESEED FILE URL
--b    set auto power-on when XenServer boots
 -o    LOG FILE LOCATION
 EOF
     exit 2
@@ -330,9 +328,8 @@ function get_pv_args() {
 function get_log_commands() {
     [ -n "$LOG" ] && return
     LOG="$VM_NAME_LABEL.log"
-    echo -e "\nLog xe commands to $LOG [y/N]? \c"
-    read DOLOG
-    if echo "$DOLOG" | egrep -q '^[Yy]'; then
+    echo
+    if prompt "Log xe commands to $LOG"; then
         echo "Logging commands to $LOG."
         [ -e "$LOG" ] && rm -i "$LOG"
     fi
@@ -368,17 +365,6 @@ function set_vcpus() {
 function set_memory_limits() {
     echo -e "Setting memory limits...\c"
     CMD="xe vm-memory-limits-set uuid=$VM_UUID static-min=${MEMORY_SIZE}MiB static-max=${MEMORY_SIZE}MiB dynamic-min=${MEMORY_SIZE}MiB dynamic-max=${MEMORY_SIZE}MiB"
-    [ -n "$LOG" ] && echo "$CMD" >> "$LOG"
-    eval "$CMD"
-    if [ $? -ne 0 ]; then
-        exit $?
-    fi
-    echo "done."
-}
-
-function set_auto_power() {
-    echo -e "Setting auto power-on...\c"
-    CMD="xe vm-param-add uuid=$VM_UUID param-name=other-config auto_poweron=true"
     [ -n "$LOG" ] && echo "$CMD" >> "$LOG"
     eval "$CMD"
     if [ $? -ne 0 ]; then
@@ -483,7 +469,7 @@ function get_domain_id() {
 #
 
 function parse_arguments() {
-    while getopts "l:c:m:h:s:n:p:t:d:v:a:i:k:r:bo:" OPT "$@"; do
+    while getopts "l:c:m:h:s:n:p:t:d:v:a:i:k:r:o:" OPT "$@"; do
         case $OPT in
             l)
                 VM_NAME_LABEL="$OPTARG"
@@ -539,9 +525,6 @@ function parse_arguments() {
             r)
                 PRESEED_URL="$OPTARG"
                 ;;
-            b)
-                AUTO_POWERON=1
-                ;;
             o)
                 LOG="$OPTARG"
                 ;;
@@ -591,28 +574,19 @@ Version: $VERSION
 Architecture: $ARCHITECTURE
 Installation repository URL: $INSTALL_REPO_URL
 PV args: $PV_ARGS
-EOF
-    echo -e "Auto power-on when XenServer boots: \c"
-    if (( ${AUTO_POWERON:-0} )); then
-        echo "yes"
-    else
-        echo "no"
-    fi
-    [ -n "$LOG" ] && echo "Log file: $LOG"
 
-    echo -e "\nImmediately start VM for installation [y/N]? \c"
-    read START
-    if echo "$START" | egrep -q '^[Yy]'; then
+EOF
+
+    if prompt "Immediately start VM for installation"; then
         START_NOW=1
     else
         START_NOW=0
     fi
 
-    echo -e "\nContinue [y/N]? \c"
-    read CONT
-    if ! echo "$CONT" | egrep -q '^[Yy]'; then
+    echo
+    if ! prompt "Continue"; then
         echo "Quitting"
-        exit
+        exit 0
     fi
 }
 
@@ -620,7 +594,6 @@ function perform_installation() {
     install_from_template
     set_vcpus
     set_memory_limits
-    set_auto_power
     destroy_vdi
     create_vdi
     create_vbd
@@ -659,7 +632,6 @@ function show_command_line() {
     [ -n "$MAC" ] && echo -e " -p $MAC\c"
     echo -e " -t \"$TEMPLATE_UUID\" -d $DISTRIBUTION -v $VERSION -a $ARCHITECTURE -i $INSTALL_REPO_URL\c"
     [ -n "$KICKSTART_URL" ] && echo -e " -k $KICKSTART_URL"
-    [ -n "$AUTO_POWERON" ] && echo -e " -b\c"
     [ -n "$LOG" ] && echo -e " -o $LOG\c"
     echo
 }
