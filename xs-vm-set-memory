@@ -43,7 +43,8 @@ shift $(( OPTIND - 1 ))
 REQUIRED=( "STATIC_MIN" "STATIC_MAX" "DYNAMIC_MIN" "DYNAMIC_MAX" "VM" )
 have_required "${REQUIRED[@]}" || usage
 
-vm_uuid "$VM" || exit 1
+uuids vm "$VM" || exit 1
+VM_UUID="${UUIDS[0]}"
 echo "VM UUID: $VM_UUID"
 
 xe vm-param-set memory-static-max="$STATIC_MAX" \

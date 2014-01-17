@@ -14,6 +14,13 @@ EOF
     exit 2
 }
 
+MYDIR=$(dirname $0)
+XS_FUNCTIONS="$MYDIR/xs-functions"
+if ! . "$XS_FUNCTIONS"; then
+    echo "Error while sourcing $XS_FUNCTIONS."
+    exit 1
+fi
+
 while getopts :h:t:v: OPT; do
     case $OPT in
         h)
@@ -31,7 +38,8 @@ while getopts :h:t:v: OPT; do
 done
 shift $(( OPTIND - 1 ))
 [ -n "$1" ] && usage
-[ -z "$HOST" ] || [ -z "$TEMPLATE" ] || [ -z "$VM" ] && usage
+REQUIRED=( "HOST" "TEMPLATE" "VM" )
+have_required "${REQUIRED[@]}" || usage
 
 SR_UUID=$(xe sr-list params=uuid name-label='Local storage' host="$HOST" --minimal)
 if [ -z "$SR_UUID" ]; then
@@ -40,7 +48,8 @@ if [ -z "$SR_UUID" ]; then
 fi
 echo "SR UUID: $SR_UUID"
 
-TEMPLATE_UUID=$(xe template-list params=uuid name-label="$TEMPLATE"  --minimal)
+uuids template "$TEMPLATE"
+TEMPLATE_UUID="${UUIDS[0]}"
 if [ -z "TEMPLATE_UUID" ]; then
     echo "Template \"$TEMPLATE\" not found"
     exit 1

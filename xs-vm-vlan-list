@@ -22,11 +22,12 @@ if ! . "$XS_FUNCTIONS"; then
     exit 1
 fi
 
-vm_uuid "$VM" || exit 1
-vm_vif_uuids "$VM_UUID"
+uuids vm "$VM" || exit 1
+vm_vif_uuids "${UUIDS[0]}"
 [ -z "$VIF_UUIDS" ] && exit 0
 for VIF_UUID in ${VIF_UUIDS[*]}; do
-    vif_device "$VIF_UUID"
+    param vif device "$VIF_UUID"
+    VIF_DEVICE="$PARAM_VALUE"
     vif_network_uuid "$VIF_UUID"
     network_pif_vlan "$NETWORK_UUID"
     echo "$VIF_DEVICE: VLAN $PIF_VLAN"

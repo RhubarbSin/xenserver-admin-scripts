@@ -21,7 +21,7 @@ function destroy() {
         prompt "Remove VM" || return 0
     fi
     echo -e "Getting power state of VM...\c"
-    param "vm" "$VM_UUID" "power-state" || return 1
+    param vm power-state "$VM_UUID" || return 1
     echo "$PARAM_VALUE."
     if [ "$PARAM_VALUE" != "halted" ]; then
         echo -e "Shutting down VM...\c"
@@ -45,7 +45,7 @@ function destroy_vdis() {
         echo "VBD UUID: $VBD_UUID"
         vbd_vdi_uuid "$VBD_UUID" || return 1
         [ "$VDI_UUID" == "<not in database>" ] && continue
-        param "vdi" "$VDI_UUID" "read-only" || return 1
+        param vdi read-only "$VDI_UUID" || return 1
         [ "$PARAM_VALUE" == "true" ] && continue
         echo "VDI UUID: $VDI_UUID"
         echo -e "Destroying VDI...\c"
@@ -82,16 +82,16 @@ if ! . "$XS_FUNCTIONS"; then
     exit 1
 fi
 
-vm_uuid "$VM"
+uuids vm "$VM"
 case $? in
     0)
-        destroy "$VM_UUID"
+        destroy "${UUIDS[0]}"
         ;;
     1)
         exit 1
         ;;
     2)
-        for VM_UUID in ${VM_UUIDS[@]}; do
+        for VM_UUID in ${UUIDS[@]}; do
             destroy "$VM_UUID"
         done
         ;;

@@ -40,86 +40,10 @@ function uuids() {
     fi
 }
 
-# get VM UUID or array of VM UUIDs from VM name label; set globals
-# VM_UUID and VM_UUIDs
-function vm_uuid() {
-    [ -z "$1" ] && return 1
-    VM_UUID=""
-    VM_UUIDS=""
-    local UUID=$(xe vm-list name-label="$1" --minimal)
-    if [ -z "$UUID" ]; then
-        (( QUIET )) || echo "VM not found"
-        return 1
-    elif [[ "$UUID" =~ , ]]; then
-        VM_UUIDS=( $(echo "$UUID" | sed -e 's/,/ /g') )
-        (( QUIET )) || echo "Multiple VMs found"
-        return 2
-    else
-        VM_UUID="$UUID"
-        return 0
-    fi
-}
-
-# get network UUID or array of network UUIDs from network name label;
-# set globals NETWORK_UUID and NETWORK_UUIDs
-function network_uuid() {
-    [ -z "$1" ] && return 1
-    NETWORK_UUID=""
-    NETWORK_UUIDS=""
-    local UUID=$(xe network-list name-label="$1" --minimal)
-    if [ -z "$UUID" ]; then
-        (( QUIET )) || echo "network not found"
-        return 1
-    elif [[ "$UUID" =~ , ]]; then
-        NETWORK_UUIDS=( $(echo "$UUID" | sed -e 's/,/ /g') )
-        (( QUIET )) || echo "Multiple networks found"
-        return 2
-    else
-        NETWORK_UUID="$UUID"
-        return 0
-    fi
-}
-
-# get template UUID or array of template UUIDs from template name label;
-# set globals TEMPLATE_UUID and TEMPLATE_UUIDs
-function template_uuid() {
-    [ -z "$1" ] && return 1
-    TEMPLATE_UUID=""
-    TEMPLATE_UUIDS=""
-    local UUID=$(xe template-list name-label="$1" --minimal)
-    if [ -z "$UUID" ]; then
-        (( QUIET )) || echo "template not found"
-        return 1
-    elif [[ "$UUID" =~ , ]]; then
-        TEMPLATE_UUIDS=( $(echo "$UUID" | sed -e 's/,/ /g') )
-        (( QUIET )) || echo "Multiple templates found"
-        return 2
-    else
-        TEMPLATE_UUID="$UUID"
-        return 0
-    fi
-}
-
-# get PIF UUID from device name (optional VLAN arg); set global
-# PIF_UUID
-function pif_uuid() {
-    [ -z "$1" ] && return 1
-    local PIF="$1"
-    local VLAN=-1
-    [ -n "$2" ] && VLAN="$2"
-    PIF_UUID=$(xe pif-list device="$PIF" VLAN="$VLAN" --minimal)
-    if [ -z "$UUID" ]; then
-        (( QUIET )) || echo "PIF not found"
-        return 1
-    else
-        return 0
-    fi
-}
-
 # get value of param name from UUID; set global PARAM_VALUE
 function param() {
     [ $# -ne 3 ] && return 1
-    PARAM_VALUE=$(xe "$1"-param-get uuid="$2" param-name="$3" --minimal)
+    PARAM_VALUE=$(xe "$1"-param-get param-name="$2" uuid="$3" --minimal)
     return $?
 }
 
@@ -186,14 +110,14 @@ function vm_host() {
     VM_HOST=""
     local VM_ASSOC PARAM_VALUE
     # check for residency
-    param "vm" "$VM_UUID" "resident-on"
+    param vm resident-on "$VM_UUID"
     if [ "$PARAM_VALUE" != "<not in database>" ]; then
         host_name "$PARAM_VALUE"
         VM_HOST="$HOST_NAME_LABEL"
         (( ASSOC )) && VM_ASSOC=( "resident" )
     fi
     # check for affinity
-    if vm_param "$VM_UUID" "affinity" && \
+    if param vm affinity "$VM_UUID" && \
         [ "$PARAM_VALUE" != "<not in database>" ]; then
         if [ -z "$VM_HOST" ]; then
             host_name "$PARAM_VALUE"

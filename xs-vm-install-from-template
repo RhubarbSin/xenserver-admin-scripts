@@ -8,25 +8,26 @@
 # locally mounted media. If the installation repository URL is not
 # specified on the command line, it will be constructed from the
 # INSTALL_REPO_URL_BASE variable defined at the top of this file and
-# the values of DISTRIBUTION, VERSION, and ARCHITECTURE. The script
-# will attempt to determine the values for the distribution, version,
-# and architecture from the template's name description if they are
-# not specified on the command line; specifying them allows overriding
-# of the values derived from the template. If the kickstart or preseed
-# URL is null, none will be used. The only way to set auto power-on
-# for the VM is via the "-b" command-line option.
+# the values of DISTRIBUTION, VERSION, and ARCHITECTURE, if possible;
+# otherwise it will prompt for the URL. The script will attempt to
+# determine the values for the distribution, version, and architecture
+# from the template's name description if they are not specified on
+# the command line; specifying them allows overriding of the values
+# derived from the template. If the kickstart or preseed URL is null,
+# none will be used. The only way to set auto power-on for the VM is
+# via the "-b" command-line option.
 #
 # TODO:
 #   - support Debian & Ubuntu
+#   - support Fedora
 #   - support dynamic memory settings
-#   - add option for not starting VM
-#   - support HVM ("Other installation media")
 #   - add option for text or VNC console
 #
 ########################################################################
 #
-# Modify get_install_repository() if this setting is not sufficient;
-# the function makes assumptions about the URL's directory structure.
+# get_install_repository() uses INSTALL_REPO_URL_BASE and makes
+# site-specific assumptions about the installation URL's directory
+# structure.
 #
 
 INSTALL_REPO_URL_BASE="http://10.1.0.1"
@@ -66,40 +67,39 @@ EOF
 #
 
 function get_vm_name_label() {
-    echo -e "\nEnter VM name: \c"
-    read VM_NAME_LABEL
-    # in script (as opposed to command line), spaces don't work for name-label
-    # even when escaped or quoted, so convert them to underscores
-    VM_NAME_LABEL=$(echo "$VM_NAME_LABEL" | sed -e 's/ /_/g')
+    while [ -z "$VM_NAME_LABEL" ]; do
+        echo -e "\nEnter VM name: \c"
+        read VM_NAME_LABEL
+    done
+    # convert spaces to dashes
+    VM_NAME_LABEL=$(echo "$VM_NAME_LABEL" | sed -e 's/ /-/g')
 }
 
 function get_vcpus() {
-    echo -e "\nEnter number of virtual CPUs [1]: \c"
-    read VCPUS
-    VCPUS=${VCPUS:-1}
+    while ! valid_integer "$VCPUS"; do
+        echo -e "\nEnter number of virtual CPUs [1]: \c"
+        read VCPUS
+        VCPUS=${VCPUS:-1}
+    done
 }
 
 function get_memory_size() {
-    while (( 1 )); do
+    while ! valid_integer "$MEMORY_SIZE"; do
         echo -e "\nEnter memory size in MB [1024]: \c"
         read MEMORY_SIZE
         MEMORY_SIZE=${MEMORY_SIZE:-1024}
-        valid_integer "$MEMORY_SIZE" && return
-        echo -e "\nMemory size must be an integer."
     done
 }
 
 function get_disk_size() {
-    while (( 1 )); do
+    while ! valid_integer "$DISK_SIZE"; do
         echo -e "\nEnter disk size in GB [5]: \c"
         read DISK_SIZE
         DISK_SIZE=${DISK_SIZE:-5}
-        valid_integer "$DISK_SIZE" && return
-        echo -e "\nDisk size must be an integer."
     done
 }
 
-function get_sr() {
+function get_sr_uuid() {
     if [ -n "$1" ]; then
         if valid_uuid "$1"; then
             local XE_OUT=$(xe sr-list params=name-label uuid="$1" --minimal)
@@ -123,8 +123,7 @@ function get_sr() {
 
     echo
     local UUIDS=$(xe sr-list content-type=user params=uuid --minimal | sed -e 's/,/ /g')
-    local NAME_LABEL
-    local IDX=0
+    local ID UUID NAME_LABEL HOST IDX=0
     for ID in $UUIDS; do
         UUID[$IDX]=$ID
         NAME_LABEL[$IDX]=$(xe sr-list params=name-label uuid=$ID --minimal)
@@ -133,6 +132,7 @@ function get_sr() {
         (( IDX++ ))
     done
     echo -e "\nChoose storage repository by number: \c"
+    local NUM
     read NUM
     SR_UUID=${UUID[$NUM]}
     SR_NAME_LABEL=${NAME_LABEL[$NUM]}
@@ -172,6 +172,7 @@ function get_network_uuid() {
         (( IDX++ ))
     done
     echo -e "\nChoose network by number: \c"
+    local NUM
     read NUM
     NETWORK_UUID=${UUID[$NUM]}
     NETWORK_NAME_LABEL=${NAME_LABEL[$NUM]}
@@ -210,6 +211,7 @@ function get_template_uuid() {
         (( IDX++ ))
     done
     echo -e "\nChoose template by number: \c"
+    local NUM
     read NUM
     TEMPLATE_UUID=${UUID[$NUM]}
     TEMPLATE_NAME_LABEL=${NAME_LABEL[$NUM]}
@@ -233,6 +235,7 @@ function get_distribution() {
         (( IDX++ ))
     done
     echo -e "\nChoose distribution by number: \c"
+    local NUM
     read NUM
     DISTRIBUTION=${DISTS[$NUM]}
 }
@@ -244,12 +247,12 @@ function get_version() {
     if [ -n "$VERSION" ]; then
         # accept current value of VERSION
         echo "This template appears to be for $DISTRIBUTION $VERSION."
-        return
-    fi
-    echo -e "\nEnter version: \c"
-    read VERSION
-    if [ $DISTRIBUTION == "CentOS" ]; then
-        VERSION=$(echo $VERSION | sed -e 's/\..*//g')
+    else
+        echo -e "\nEnter version: \c"
+        read VERSION
+        if [ $DISTRIBUTION == "CentOS" ]; then
+            VERSION=$(echo $VERSION | sed -e 's/\..*//g')
+        fi
     fi
 }
 
@@ -263,6 +266,7 @@ function get_architecture() {
         echo -e "\n1) 32-bit"
         echo "2) 64-bit"
         echo -e "\nChoose architecture by number: \c"
+        local NUM
         read NUM
         if [ $NUM -eq 1 ]; then
             CPU_ARCH=32
@@ -282,13 +286,16 @@ function get_architecture() {
 
 function get_install_repository() {
     if [ -z "$INSTALL_REPO_URL_BASE" ]; then
-        echo -e "\nINSTALL_REPO_URL_BASE must be defined in $0."
+        echo -e "\nINSTALL_REPO_URL_BASE must be defined in ${0##*/}."
         exit 1
     fi
     if [ $DISTRIBUTION == "CentOS" ]; then
         INSTALL_REPO_URL="$INSTALL_REPO_URL_BASE/$DISTRIBUTION/$VERSION/os/$ARCHITECTURE"
     elif [ $DISTRIBUTION == "Ubuntu" -o $DISTRIBUTION == "Debian" ]; then
         INSTALL_REPO_URL="$INSTALL_REPO_URL_BASE/$DISTRIBUTION/$VERSION/$ARCHITECTURE"
+    else
+        echo -e "\nEnter URL of installation repository: \c"
+        read INSTALL_REPO_URL
     fi
 }
 
@@ -321,6 +328,7 @@ function get_pv_args() {
 }
 
 function get_log_commands() {
+    [ -n "$LOG" ] && return
     LOG="$VM_NAME_LABEL.log"
     echo -e "\nLog xe commands to $LOG [y/N]? \c"
     read DOLOG
@@ -544,21 +552,24 @@ function parse_arguments() {
 }
 
 function get_all_parameters() {
-    [ -n "$VM_NAME_LABEL" ] || get_vm_name_label
-    [ -n "$VCPUS" ] || get_vcpus
-    [ -n "$MEMORY_SIZE" ] || get_memory_size
-    [ -n "$DISK_SIZE" ] || get_disk_size
-    get_sr "$SR"
+    get_vm_name_label
+    get_vcpus
+    get_memory_size
+    get_disk_size
+    get_sr_uuid "$SR"
     get_network_uuid "$NETWORK"
     get_template_uuid "$TEMPLATE"
-    [ -n "$DISTRIBUTION" ] || get_distribution
-    [ -n "$VERSION" ] || get_version
-    [ -n "$ARCHITECTURE" ] || get_architecture
-    [ -n "$INSTALL_REPO_URL" ] || get_install_repository
-    [ -n "$KICKSTART_URL" ] || get_kickstart_url
-    [ -n "$PRESEED_URL" ] || get_preseed_url
+    get_distribution
+    get_version
+    get_architecture
+    get_install_repository
+    if [ "$DISTRIBUTION" == "CentOS" ]; then
+        get_kickstart_url
+    else
+        get_preseed_url
+    fi
     get_pv_args
-    [ -n "$LOG" ] || get_log_commands
+    get_log_commands
 }
 
 function display_and_confirm() {
