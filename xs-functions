@@ -11,7 +11,13 @@ if ! which xe > /dev/null 2>&1; then
     echo "xe is not in your shell's path."
     exit 1
 fi
-[ -z "$XE_EXTRA_ARGS" ] && export XE_EXTRA_ARGS="server=${XE_SERVER=127.0.0.1},port=${XE_PORT=443},username=${XE_USERNAME=root},password=${XE_PASSWORD=root!!!}"
+
+# connection information for pool master
+XE_SERVER="${XE_SERVER=127.0.0.1}"
+XE_PORT="${XE_PORT=443}"
+XE_USERNAME="${XE_USERNAME=root}"
+XE_PASSWORD="${XE_PASSWORD=root!!!}"
+[ -z "$XE_EXTRA_ARGS" ] && export XE_EXTRA_ARGS="server=$XE_SERVER,port=$XE_PORT,username=$XE_USERNAME,password=$XE_PASSWORD"
 
 ########################################################################
 # 
@@ -45,6 +51,18 @@ function get_param() {
     [ $# -ne 3 ] && return 1
     PARAM_VALUE=$(xe "$1"-param-get param-name="$2" uuid="$3" --minimal)
     return $?
+}
+
+# get SR UUID for local storage on host; set global SR_UUID
+function get_local_sr_uuid() {
+    [ -z "$1" ] && return 1
+    SR_UUID=$(xe sr-list params=uuid name-label='Local storage' host="$1" --minimal)
+    if [ -z "$SR_UUID" ]; then
+        echo "Storage repository \"Local storage\" on host $HOST not found"
+        return 1
+    else
+        return 0
+    fi
 }
 
 # get array of VIF UUIDs from VM UUID; set global VIF_UUIDS

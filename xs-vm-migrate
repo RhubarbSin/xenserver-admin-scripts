@@ -3,18 +3,31 @@
 function usage() {
     cat <<EOF
 
-Migrate a VM using local storage.
+Perform a live VM migration.
 
-Usage: ${0##*/} -h HOST -v VM
+Usage: ${0##*/} [-l] -h HOST -v VM
 
+-l    use local storage on destination host
 -h    name label (host name) of XenServer host to which to migrate the VM
 -v    name label of the VM
 EOF
     exit 2
 }
 
-while getopts :h:v: OPT; do
+MYDIR=$(dirname $0)
+XS_FUNCTIONS="$MYDIR/xs-functions"
+if ! . "$XS_FUNCTIONS"; then
+    echo "Error while sourcing $XS_FUNCTIONS."
+    exit 1
+fi
+
+LOCAL=0
+
+while getopts :lh:v: OPT; do
     case $OPT in
+        l)
+            LOCAL=1
+            ;;
         h)
             HOST="$OPTARG"
             ;;
@@ -27,27 +40,24 @@ while getopts :h:v: OPT; do
 done
 shift $(( OPTIND - 1 ))
 [ -n "$1" ] && usage
-[ -z "$HOST" ] || [ -z "$VM" ] && usage
+REQUIRED=( "HOST" "VM" )
+have_required "${REQUIRED[@]}" || usage
 
-HOST_UUID=$(xe host-list name-label="$HOST" --minimal)
-if [ -z "$HOST_UUID" ]; then
-    echo "Host \"$HOST\" not found"
-    exit 1
-fi
-echo "HOST UUID: $HOST_UUID"
+get_uuids host "$HOST" || exit 1
+HOST_UUID="${UUIDS[0]}"
+echo "Host UUID: $HOST_UUID"
 
-SR_UUID=$(xe sr-list name-label='Local storage' host="$HOST" --minimal)
-if [ -z "$SR_UUID" ]; then
-    echo "Storage repository \"Local storage\" on host $HOST not found"
-    exit 1
+if (( LOCAL )); then
+    get_local_sr_uuid "$HOST" || exit 1
+    echo "SR UUID: $SR_UUID"
 fi
-echo "SR UUID: $SR_UUID"
 
-VM_UUID=$(xe vm-list name-label="$VM" --minimal)
-if [ -z "$VM_UUID" ]; then
-    echo "VM \"$VM\" not found"
-    exit 1
-fi
+get_uuids vm "$VM" || exit 1
+VM_UUID="${UUIDS[0]}"
 echo "VM UUID: $VM_UUID"
 
-xe vm-migrate live=true remote-master=10.0.1.1 remote-username=root remote-password='root!!!' destination-sr-uuid="$SR_UUID" host-uuid="$HOST_UUID" vm="$VM_UUID"
+if (( LOCAL )); then
+    xe vm-migrate live=true remote-master="$XE_SERVER" remote-username="$XE_USERNAME" remote-password="$XE_PASSWORD" destination-sr-uuid="$SR_UUID" host-uuid="$HOST_UUID" vm="$VM_UUID"
+else
+    xe vm-migrate live=true host-uuid="$HOST_UUID" vm="$VM_UUID"
+fi
