@@ -41,7 +41,7 @@ function get_uuids() {
 }
 
 # get value of param name from UUID; set global PARAM_VALUE
-function param() {
+function get_param() {
     [ $# -ne 3 ] && return 1
     PARAM_VALUE=$(xe "$1"-param-get param-name="$2" uuid="$3" --minimal)
     return $?
@@ -110,14 +110,14 @@ function vm_host() {
     VM_HOST=""
     local VM_ASSOC PARAM_VALUE
     # check for residency
-    param vm resident-on "$VM_UUID"
+    get_param vm resident-on "$VM_UUID"
     if [ "$PARAM_VALUE" != "<not in database>" ]; then
         host_name "$PARAM_VALUE"
         VM_HOST="$HOST_NAME_LABEL"
         (( ASSOC )) && VM_ASSOC=( "resident" )
     fi
     # check for affinity
-    if param vm affinity "$VM_UUID" && \
+    if get_param vm affinity "$VM_UUID" && \
         [ "$PARAM_VALUE" != "<not in database>" ]; then
         if [ -z "$VM_HOST" ]; then
             host_name "$PARAM_VALUE"

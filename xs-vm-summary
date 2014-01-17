@@ -45,10 +45,10 @@ fi
 
 VM_UUIDS=$(xe vm-list --minimal | sed -e 's/,/ /g')
 for VM_UUID in $VM_UUIDS; do
-    param vm name-label "$VM_UUID" || continue
+    get_param vm name-label "$VM_UUID" || continue
     VM_NAME_LABEL="$PARAM_VALUE"
     ! (( DOM0 )) && [[ "$VM_NAME_LABEL" =~ Control\ domain ]] && continue
-    param vm power-state "$VM_UUID" || continue
+    get_param vm power-state "$VM_UUID" || continue
     VM_POWER_STATE="$PARAM_VALUE"
     STRING=""
     ! (( SHORT )) && STRING="$VM_UUID\t"

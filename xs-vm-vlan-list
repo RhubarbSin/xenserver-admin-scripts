@@ -26,7 +26,7 @@ get_uuids vm "$VM" || exit 1
 vm_vif_uuids "${UUIDS[0]}"
 [ -z "$VIF_UUIDS" ] && exit 0
 for VIF_UUID in ${VIF_UUIDS[*]}; do
-    param vif device "$VIF_UUID"
+    get_param vif device "$VIF_UUID"
     VIF_DEVICE="$PARAM_VALUE"
     vif_network_uuid "$VIF_UUID"
     network_pif_vlan "$NETWORK_UUID"
