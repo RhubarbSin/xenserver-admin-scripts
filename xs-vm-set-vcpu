@@ -42,7 +42,7 @@ vm_uuid "$VM" || exit 1
 echo "VM UUID: $VM_UUID"
 
 CMD="xe vm-param-set uuid=$VM_UUID"
-vm_param "$VM_UUID" "VCPUs-max"
+param "vm" "$VM_UUID" "VCPUs-max"
 if [ "$VCPUS_AT_STARTUP" -gt "$PARAM_VALUE" ]; then
     CMD="$CMD VCPUs-max=$VCPUS_MAX"
     CMD="$CMD VCPUs-at-startup=$VCPUS_AT_STARTUP"

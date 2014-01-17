@@ -94,17 +94,10 @@ function pif_uuid() {
     fi
 }
 
-# get value of param name from VM UUID; set global PARAM_VALUE
-function vm_param() {
-    [ -z "$1" ] || [ -z "$2" ] && return 1
-    PARAM_VALUE=$(xe vm-param-get uuid="$1" param-name="$2" --minimal)
-    return $?
-}
-
-# get value of param name from VDI UUID; set global PARAM_VALUE
-function vdi_param() {
-    [ -z "$1" ] || [ -z "$2" ] && return 1
-    PARAM_VALUE=$(xe vdi-param-get uuid="$1" param-name="$2" --minimal)
+# get value of param name from UUID; set global PARAM_VALUE
+function param() {
+    [ $# -ne 3 ] && return 1
+    PARAM_VALUE=$(xe "$1"-param-get uuid="$2" param-name="$3" --minimal)
     return $?
 }
 
@@ -163,7 +156,10 @@ function host_name() {
 # second argument is passed; XXX NEEDS WORK
 function vm_host() {
     [ -z "$1" ] && return 1
-    [ -n "$2" ] && local ASSOC=1 || ASSOC=0
+    if [ -n "$2" ]; then
+        local ASSOC=1
+    else
+        local ASSOC=0
     VM_HOST=""
     local VM_ASSOC PARAM_VALUE
     # check for residency
