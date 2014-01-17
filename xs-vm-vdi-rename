@@ -1,0 +1,64 @@
+#!/bin/bash
+
+function usage() {
+    cat <<EOF
+
+Change name label of a VM and all of its non-read-only VDIs.
+
+Usage: ${0##*/} -v VM -n NAME
+
+-v    name label of the VM
+-n    new name label
+EOF
+    exit 2
+}
+
+MYDIR=$(dirname $0)
+XS_FUNCTIONS="$MYDIR/xs-functions"
+if ! . "$XS_FUNCTIONS"; then
+    echo "Error while sourcing $XS_FUNCTIONS."
+    exit 1
+fi
+
+while getopts :v:n: OPT; do
+    case $OPT in
+        v)
+            VM="$OPTARG"
+            ;;
+        n)
+            NAME_LABEL="$OPTARG"
+            ;;
+        *)
+            usage
+    esac
+done
+shift $(( OPTIND - 1 ))
+[ -n "$1" ] && usage
+REQUIRED=( "VM" "NAME_LABEL" )
+have_required "${REQUIRED[@]}" || usage
+[ -z "$VM" ] || [ -z "$NAME_LABEL" ] && usage
+
+get_uuids vm "$VM" || exit 1
+VM_UUID="${UUIDS[0]}"
+echo "VM UUID: $VM_UUID"
+vm_vbd_uuids "$VM_UUID" || exit 1
+INDEX=0
+VDI_UUIDS=""
+for VBD_UUID in ${VBD_UUIDS[@]}; do
+    echo "VBD UUID: $VBD_UUID"
+    vbd_vdi_uuid "$VBD_UUID" || exit 1
+    get_get_param vdi read-only "$VDI_UUID" || exit 1
+    [ "$PARAM_VALUE" == "true" ] && continue
+    echo "VDI UUID: $VDI_UUID"
+    VDI_UUIDS[$INDEX]="$VDI_UUID"
+    (( INDEX++ ))
+done
+
+echo -e "Renaming VM...\c"
+xe vm-param-set name-label="$NAME_LABEL" uuid="$VM_UUID" || exit 1
+echo "done."
+for VDI_UUID in ${VDI_UUIDS[@]}; do
+    echo -e "Renaming VDI...\c"
+    xe vdi-param-set name-label="$NAME_LABEL" uuid=$VDI_UUID || exit 1
+    echo "done."
+done
