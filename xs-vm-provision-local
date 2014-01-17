@@ -41,19 +41,12 @@ shift $(( OPTIND - 1 ))
 REQUIRED=( "HOST" "TEMPLATE" "VM" )
 have_required "${REQUIRED[@]}" || usage
 
-SR_UUID=$(xe sr-list params=uuid name-label='Local storage' host="$HOST" --minimal)
-if [ -z "$SR_UUID" ]; then
-    echo "Storage repository \"Local storage\" on host $HOST not found"
-    exit 1
-fi
+get_local_sr_uuid "$HOST" || exit 1
 echo "SR UUID: $SR_UUID"
 
 get_uuids template "$TEMPLATE"
 TEMPLATE_UUID="${UUIDS[0]}"
-if [ -z "TEMPLATE_UUID" ]; then
-    echo "Template \"$TEMPLATE\" not found"
-    exit 1
-fi
+[ -n "$TEMPLATE_UUID" ] || exit 1
 echo "Template UUID: $TEMPLATE_UUID"
 
 echo -e "Creating $VM...\c"
