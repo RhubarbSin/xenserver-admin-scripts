@@ -35,7 +35,7 @@ if ! . "$XS_FUNCTIONS"; then
     exit 1
 fi
 
-QUIET=1 uuids vm "$VM"
+QUIET=1 get_uuids vm "$VM"
 case $? in
     0)
         if (( SHOW )); then
@@ -49,7 +49,7 @@ case $? in
         fi
         ;;
     1)
-        uuids template "$VM" || exit 1
+        get_uuids template "$VM" || exit 1
         if (( SHOW )); then
             IS="is"
         else
@@ -61,7 +61,7 @@ case $? in
         fi
         ;;
     2)
-        uuids vm "$VM"  # because first vm_uuid() call suppressed output
+        get_uuids vm "$VM"  # because first vm_uuid() call suppressed output
         exit 1
         ;;
     *)

@@ -3,3 +3,11 @@
   - name label 'Local storage' if using -h and -s
   - host name label same as hostname
   - unique name labels
+  - name
+
+* environment variables
+  - XE_SERVER
+  - XE_PORT
+  - XE_USER
+  - XE_PASSWORD
+

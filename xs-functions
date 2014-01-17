@@ -19,7 +19,7 @@ fi
 #
 
 # get array of UUIDs from name label; set global UUIDS
-function uuids() {
+function get_uuids() {
     [ $# -ne 2 ] && return 1
     UUIDS=""
     local XE_OUT=$(xe "$1"-list name-label="$2" --minimal)

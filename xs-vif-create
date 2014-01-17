@@ -51,10 +51,10 @@ else
     MACADDRESS="random"
 fi
 
-uuids vm "$VM" || exit 1
+get_uuids vm "$VM" || exit 1
 VM_UUID=${UUIDS[0]}
 echo "VM UUID: $VM_UUID"
-uuids network "$NETWORK" || exit 1
+get_uuids network "$NETWORK" || exit 1
 NETWORK_UUID=${UUIDS[0]}
 echo "Network UUID: $NETWORK_UUID"
 

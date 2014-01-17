@@ -48,7 +48,7 @@ if [ -z "$SR_UUID" ]; then
 fi
 echo "SR UUID: $SR_UUID"
 
-uuids template "$TEMPLATE"
+get_uuids template "$TEMPLATE"
 TEMPLATE_UUID="${UUIDS[0]}"
 if [ -z "TEMPLATE_UUID" ]; then
     echo "Template \"$TEMPLATE\" not found"

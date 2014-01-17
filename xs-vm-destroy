@@ -82,7 +82,7 @@ if ! . "$XS_FUNCTIONS"; then
     exit 1
 fi
 
-uuids vm "$VM"
+get_uuids vm "$VM"
 case $? in
     0)
         destroy "${UUIDS[0]}"
