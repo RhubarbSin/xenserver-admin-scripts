@@ -18,6 +18,28 @@ fi
 # Functions for XenServer object queries
 #
 
+# get array of UUIDs from name label; set global UUIDS
+function uuids() {
+    [ $# -ne 2 ] && return 1
+    UUIDS=""
+    local XE_OUT=$(xe "$1"-list name-label="$2" --minimal)
+    local OBJECT="$1"
+    for TYPE in vm vif vbd vdi sr pbd pif; do
+        [ "$1" == "$TYPE" ] && local OBJECT=$(echo "$1" | tr a-z A-Z) && break
+    done
+    if [ -z "$XE_OUT" ]; then
+        (( QUIET )) || echo "$OBJECT not found"
+        return 1
+    elif [[ "$XE_OUT" =~ , ]]; then
+        UUIDS=( $(echo "$XE_OUT" | sed -e 's/,/ /g') )
+        (( QUIET )) || echo "Multiple ${OBJECT}s found"
+        return 2
+    else
+        UUIDS=( "$XE_OUT" )
+        return 0
+    fi
+}
+
 # get VM UUID or array of VM UUIDs from VM name label; set globals
 # VM_UUID and VM_UUIDs
 function vm_uuid() {
@@ -160,10 +182,11 @@ function vm_host() {
         local ASSOC=1
     else
         local ASSOC=0
+    fi
     VM_HOST=""
     local VM_ASSOC PARAM_VALUE
     # check for residency
-    vm_param "$VM_UUID" "resident-on"
+    param "vm" "$VM_UUID" "resident-on"
     if [ "$PARAM_VALUE" != "<not in database>" ]; then
         host_name "$PARAM_VALUE"
         VM_HOST="$HOST_NAME_LABEL"
