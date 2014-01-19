@@ -1,9 +1,8 @@
 
 * assumptions
-  - name label 'Local storage' if using -h and -s
-  - host name label same as hostname
-  - unique name labels
-  - name
+  - each host's local storage has name label 'Local storage'
+  - host name label is same as hostname
+  - unique name labels everything (like XML, UUIDs are not meant for humans)
 
 * environment variables
   - XE_SERVER
@@ -13,3 +12,4 @@
 
 * reasons
   - =vm-uninstall= leaves orphan VDIs
+  ...to be completed...
