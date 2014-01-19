@@ -11,3 +11,5 @@
   - XE_USER
   - XE_PASSWORD
 
+* reasons
+  - =vm-uninstall= leaves orphan VDIs
