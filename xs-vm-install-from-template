@@ -378,9 +378,9 @@ function set_memory_limits() {
 function destroy_vdi() {
     CMD="xe vbd-list vm-uuid=$VM_UUID params=vdi-uuid --minimal"
     [ -n "$LOG" ] && echo "$CMD" >> "$LOG"
-    VDI_UUID=$($CMD)
+    VDI_UUIDS=( $($CMD | sed -e 's/,/ /g') )
 
-    if [ -n "$VDI_UUID" ]; then
+    for VDI_UUID in ${VDI_UUIDS[*]}; do
         echo -e "Destroying virtual disk image...\c"
 
         CMD="xe vdi-destroy uuid=$VDI_UUID"
@@ -390,7 +390,7 @@ function destroy_vdi() {
             exit $?
         fi
         echo "done."
-    fi
+    done
 }
 
 function create_vdi() {
