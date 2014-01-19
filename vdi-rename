@@ -1,0 +1,25 @@
+#!/bin/bash
+#
+# For VMs that have name labels matching regular expression, set VDI's
+# name label to match VM's name label.
+#
+
+REGEX='^p[0-9]{5}'
+
+for VM_UUID in $(xe vm-list params=uuid --minimal | sed 's/,/ /g'); do
+    echo -e "VM UUID: $VM_UUID"
+    VM_NAME_LABEL=$(xe vm-list params=name-label uuid=$VM_UUID --minimal)
+    if [[ "$VM_NAME_LABEL" =~ $REGEX ]]; then
+        echo "VM name label: $VM_NAME_LABEL"
+        VDI_UUID=$(xe vbd-list params=vdi-uuid userdevice=0 vm-uuid=$VM_UUID --minimal)
+        if [ -n "$VDI_UUID" ]; then
+            echo "VDI UUID: $VDI_UUID"
+            echo -e "Renaming VDI...\c"
+            if xe vdi-param-set name-label="$VM_NAME_LABEL" uuid="$VDI_UUID"; then
+                echo "done."
+            fi
+        else
+            echo "Error: VDI not found"
+        fi
+    fi
+done

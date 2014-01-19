@@ -1,0 +1,25 @@
+#!/bin/bash
+#
+# Destroy VDIs not associated with multiple VBDs or VBDs associated with VMs.
+#
+# USE WITH CAUTION: NOT WELL-TESTED
+#
+
+VDI_UUIDS=$(xe vdi-list --minimal | sed -e 's/,/ /g')
+for VDI_UUID in $VDI_UUIDS; do
+    VBD_UUIDS=( $(xe vbd-list vdi-uuid=$VDI_UUID --minimal | sed -e 's/,/ /g') )
+    [ ${#VBD_UUIDS[@]} -gt 1 ] && continue  # short-circuit: multiple VBDs
+    if [ ${#VBD_UUIDS[@]} == 1 ]; then
+        VM_UUID=$(xe vbd-param-get param-name=vm-uuid uuid="${VBD_UUIDS[0]}")
+        [ -n $(xe vm-list uuid="$VM_UUID" --minimal) ] && continue  # VM exists
+        echo "VBD UUID: ${VBD_UUIDS[0]}"
+        VM_NAME_LABEL=$(xe vbd-param-get param-name=vm-name-label uuid="${VBD_UUIDS[0]}")
+        echo "VM name label: $VM_NAME_LABEL"
+    fi
+
+    if [ $(xe vdi-param-get param-name=read-only uuid="$VDI_UUID" --minimal) == "false" ]; then
+        echo "VDI UUID: $VDI_UUID"
+        VDI_NAME_LABEL=$(xe vdi-param-get param-name=name-label uuid="$VDI_UUID")
+        echo "VDI name label: $VDI_NAME_LABEL"
+    fi
+done
