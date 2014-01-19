@@ -1,0 +1,2 @@
+#+TITLE: XenServer Admin Scripts
+These are works in progress for performing common XenServer CLI tasks. They are somewhat site-specific and have some known bugs.
