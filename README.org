@@ -1,2 +1,55 @@
 #+TITLE: XenServer Admin Scripts
 These are works in progress for performing common XenServer CLI tasks. They are somewhat site-specific and have some known bugs.
+
+* Assumptions
+  - name labels are unique among each type of object (VM, SR, network...)
+  - host name label is same as hostname
+  - each host's local storage has name label 'Local storage'
+
+* Environment variables
+  - XE_SERVER
+  - XE_PORT
+  - XE_USER
+  - XE_PASSWORD
+
+* Reasons
+  - =vm-uninstall= leaves orphan VDIs
+  ...to be completed...
+
+* Remaining work
+** xs-* scripts [17/26]
+   - [ ] set arg vars to avoid env vars; always initialize vars!
+   - [X] change (( 1 )) loops
+   - [X] convert *-param-get() xs-functions to param()
+   - [X] use have_required()
+   - [X] param() to param_value()
+   - [X] *_uuid() to uuid() or uuids()
+   - [X] use prompt() in install-from-template
+   - [ ] NFS mount scripts from XenGateway
+   - [ ] refactor scripts
+   - [X] xe configuration in xs-functions
+   - [X] prompt with extra arg in xs-functions
+   - [X] match vdi name labels to vm name labels
+   - [X] xs-vm-vdi-rename
+   - [X] destroy unused vdis
+   - [X] generalize xs-vm-migrate
+   - [X] spaces in name-label
+   - [ ] "vm-make-golden-master"
+   - [ ] vm-start
+   - [ ] default to localhost for xs-vm-provision-local
+   - [ ] generalize xs-vm-provision
+   - [ ] vm-summary is a mess
+   - [ ] vm-vnc-toggle for PV
+   - [X] vif-destroy -i -v
+   - [X] vif-create
+   - [X] accomodate duplicate name-labels in xs-function *_uuid
+   - [X] xcp_ scripts to xs-
+*** xs-vm-install-from-template
+    - [ ] cli bug?
+    - [X] set VCPUs
+    - [ ] memory limits options
+    - [ ] interactive bugs
+      - [ ] empty string for dist
+      - [ ] empty string for arch
+      - [ ] empty string for version?
+    - [ ] text/vnc console connection option
