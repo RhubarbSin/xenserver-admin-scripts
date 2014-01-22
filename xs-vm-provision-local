@@ -51,18 +51,18 @@ echo "Template UUID: $TEMPLATE_UUID"
 
 echo -e "Creating $VM...\c"
 VM_UUID=$(xe vm-install sr-uuid="$SR_UUID" template="$TEMPLATE_UUID" new-name-label="$VM")
-if [ -n "$VM_UUID" ]; then
-    echo -e "done.\nVM UUID: $VM_UUID"
-    VDI_UUID=$(xe vbd-list params=vdi-uuid vm-uuid=$VM_UUID --minimal)
-    [ -z "$VDI_UUID" ] && VDI_UUID=$(xe vbd-list params=vdi-uuid device=0 vm-uuid=$VM_UUID --minimal)
-    if [ -n "$VDI_UUID" ]; then
+[ -z "$VM_UUID" ] && exit 1
+echo -e "done.\nVM UUID: $VM_UUID"
+vm_vbd_uuids "$VM_UUID"
+for VBD_UUID in ${VBD_UUIDS[@]}; do
+    vbd_vdi_uuid "$VBD_UUID"
+    if [ "$VDI_UUID" == '<not in database>' ];then
+        continue
+    else
         echo "VDI UUID: $VDI_UUID"
         echo -e "Renaming VDI...\c"
         if xe vdi-param-set name-label="$VM" uuid="$VDI_UUID"; then
             echo "done."
         fi
-    else
-        echo "Error: VDI not found"
-        exit 1
     fi
-fi
+done
