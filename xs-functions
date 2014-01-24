@@ -189,7 +189,7 @@ function valid_mac_address() {
 #
 
 function prompt() {
-    echo -e "$1 ${2=[y/N]?}: \c"
+    echo -e "$1 ${2-[y/N]?}: \c"
     local RESPONSE="n"
     read RESPONSE
     if echo "$RESPONSE" | egrep -q ' *[Yy] *'; then
