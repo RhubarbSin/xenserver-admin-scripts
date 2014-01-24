@@ -43,11 +43,15 @@ if ! . "$XS_FUNCTIONS"; then
     exit 1
 fi
 
-VM_UUIDS=$(xe vm-list --minimal | sed -e 's/,/ /g')
+if (( DOM0 )); then
+    OPT_STR=""
+else
+    OPT_STR="is-control-domain=false"
+fi
+VM_UUIDS=$(xe vm-list $OPT_STR --minimal | sed -e 's/,/ /g')
 for VM_UUID in $VM_UUIDS; do
     get_param vm name-label "$VM_UUID" || continue
     VM_NAME_LABEL="$PARAM_VALUE"
-    ! (( DOM0 )) && [[ "$VM_NAME_LABEL" =~ Control\ domain ]] && continue
     get_param vm power-state "$VM_UUID" || continue
     VM_POWER_STATE="$PARAM_VALUE"
     STRING=""
