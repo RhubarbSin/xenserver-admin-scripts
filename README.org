@@ -17,7 +17,7 @@ These are works in progress for performing common XenServer CLI tasks. They are 
   ...to be completed...
 
 * Remaining work
-** xs-* scripts [17/26]
+** xs-* scripts [18/27]
    - [ ] set arg vars to avoid env vars; always initialize vars!
    - [X] change (( 1 )) loops
    - [X] convert *-param-get() xs-functions to param()
@@ -40,6 +40,7 @@ These are works in progress for performing common XenServer CLI tasks. They are 
    - [ ] generalize xs-vm-provision
    - [ ] vm-summary is a mess
    - [ ] vm-vnc-toggle for PV
+   - [X] consider IFS=, instead of sed for UUID lists
    - [X] vif-destroy -i -v
    - [X] vif-create
    - [X] accomodate duplicate name-labels in xs-function *_uuid
