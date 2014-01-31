@@ -117,7 +117,7 @@ function host_name() {
 # get name label of host running VM or preferred host for VM or host
 # housing VM's primary VDI (assumed to be hda for HVM and xvda for
 # PV); include type of association (resident, affinity, SR) if a
-# second argument is passed; XXX NEEDS WORK
+# second argument is passed
 function vm_host() {
     [ -z "$1" ] && return 1
     if [ -n "$2" ]; then
@@ -143,17 +143,26 @@ function vm_host() {
         fi
         (( ASSOC )) && VM_ASSOC=( ${VM_ASSOC[*]} "affinity" )
     fi
-    # check for local SR
-    local VDI_UUID=$(xe vbd-list params=vdi-uuid device=xvda vm-uuid="$VM_UUID" --minimal)
-    [ -z "$VDI_UUID" ] && VDI_UUID=$(xe vbd-list params=vdi-uuid device=hda vm-uuid="$VM_UUID" --minimal)
-    if [ -n "$VDI_UUID" ]; then 
-        local SR_UUID=$(xe vdi-list params=sr-uuid uuid=$VDI_UUID --minimal)
-        local SR_HOST=$(xe sr-list params=host uuid="$SR_UUID" --minimal)
-        if [ "$SR_HOST" != "<shared>" ]; then 
-            [ -z "$VM_HOST" ] && VM_HOST="$SR_HOST"
-            (( ASSOC )) && VM_ASSOC=( ${VM_ASSOC[*]} "SR" )
+    # check for VDIs on local SR
+    local VBD_UUIDS
+    vm_vbd_uuids "$VM_UUID"
+    local VBD_UUID SR_UUID SR_HOST
+    for VBD_UUID in ${VBD_UUIDS[@]}; do
+        vbd_vdi_uuid "$VBD_UUID"
+        get_param vdi sr-uuid "$VDI_UUID"
+        SR_UUID="$PARAM_VALUE"
+        get_param sr host "$SR_UUID"
+        SR_HOST="$PARAM_VALUE"
+        if [ "$SR_HOST" != "<shared>" ]; then
+            if [ -z "$VM_HOST" ]; then
+                VM_HOST="$SR_HOST"
+            fi
+            if [ -n "$VM_HOST" ] && [ "$VM_HOST" == "$SR_HOST" ]; then
+                (( ASSOC )) && VM_ASSOC=( ${VM_ASSOC[*]} "SR" )
+                break
+            fi
         fi
-    fi
+    done
 
     if [ -n "$VM_HOST" ]; then
         (( ASSOC )) && VM_HOST="$VM_HOST ($(echo ${VM_ASSOC[*]} | sed 's/ /, /g'))"
