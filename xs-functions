@@ -125,6 +125,7 @@ function host_name() {
 # second argument is passed
 function vm_host() {
     [ -z "$1" ] && return 1
+    local VM_UUID="$1"
     if [ -n "$2" ]; then
         local ASSOC=1
     else
@@ -133,32 +134,30 @@ function vm_host() {
     VM_HOST=""
     local VM_ASSOC PARAM_VALUE
     # check for residency
-    get_param vm resident-on "$VM_UUID"
-    if [ "$PARAM_VALUE" != "<not in database>" ]; then
-        host_name "$PARAM_VALUE"
-        VM_HOST="$HOST_NAME_LABEL"
+    if get_param vm resident-on "$VM_UUID" && \
+        get_param host name-label "$PARAM_VALUE"; then
+        VM_HOST="$PARAM_VALUE"
         (( ASSOC )) && VM_ASSOC=( "resident" )
     fi
     # check for affinity
     if get_param vm affinity "$VM_UUID" && \
-        [ "$PARAM_VALUE" != "<not in database>" ]; then
-        if [ -z "$VM_HOST" ]; then
-            host_name "$PARAM_VALUE"
-            VM_HOST="$HOST_NAME_LABEL"
+        get_param host name-label "$PARAM_VALUE"; then
+        local AFFINITY_HOST="$PARAM_VALUE"
+        [ -z "$VM_HOST" ] && VM_HOST="$AFFINITY_HOST"
+        if [ -n "$VM_HOST" ] && [ "$VM_HOST" == "$AFFINITY_HOST" ]; then
+            (( ASSOC )) && VM_ASSOC=( ${VM_ASSOC[*]} "affinity" )
         fi
-        (( ASSOC )) && VM_ASSOC=( ${VM_ASSOC[*]} "affinity" )
     fi
     # check for VDIs on local SR
     local VBD_UUIDS
     vm_vbd_uuids "$VM_UUID"
     local VBD_UUID
     for VBD_UUID in ${VBD_UUIDS[@]}; do
-        get_param vbd vdi-uuid "$VBD_UUID"
+        get_param vbd vdi-uuid "$VBD_UUID" || continue
         local VDI_UUID="$PARAM_VALUE"
-        [ "$VDI_UUID" == "<not in database>" ] && continue
-        get_param vdi sr-uuid "$VDI_UUID"
+        get_param vdi sr-uuid "$VDI_UUID" || continue
         local SR_UUID="$PARAM_VALUE"
-        get_param sr host "$SR_UUID"
+        get_param sr host "$SR_UUID" || continue
         local SR_HOST="$PARAM_VALUE"
         if [ "$SR_HOST" != "<shared>" ]; then
             if [ -z "$VM_HOST" ]; then
