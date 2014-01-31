@@ -17,7 +17,7 @@ These are works in progress for performing common XenServer CLI tasks. They are 
   ...to be completed...
 
 * Remaining work
-** xs-* scripts [19/27]
+** xs-* scripts [20/27]
    - [ ] set arg vars to avoid env vars; always initialize vars!
    - [X] change (( 1 )) loops
    - [X] convert *-param-get() xs-functions to param()
@@ -38,7 +38,7 @@ These are works in progress for performing common XenServer CLI tasks. They are 
    - [ ] vm-start
    - [X] default to localhost for xs-vm-provision-local
    - [ ] generalize xs-vm-provision
-   - [ ] vm-summary is a mess
+   - [X] vm-summary is a mess
    - [ ] vm-vnc-toggle for PV
    - [X] consider IFS=, instead of sed for UUID lists
    - [X] vif-destroy -i -v
