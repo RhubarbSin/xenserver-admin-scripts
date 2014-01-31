@@ -47,6 +47,7 @@ VDI_UUIDS=""
 for VBD_UUID in ${VBD_UUIDS[@]}; do
     echo "VBD UUID: $VBD_UUID"
     vbd_vdi_uuid "$VBD_UUID" || exit 1
+    [ "$VDI_UUID" == "<not in database>" ] && continue
     get_param vdi read-only "$VDI_UUID" || exit 1
     [ "$PARAM_VALUE" == "true" ] && continue
     echo "VDI UUID: $VDI_UUID"
