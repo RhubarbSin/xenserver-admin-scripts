@@ -5,11 +5,11 @@ function usage() {
 
 Provision a VM from a template using local storage.
 
-Usage: ${0##*/} -h HOST -t TEMPLATE -v VM
+Usage: ${0##*/} -t TEMPLATE -v VM [-h HOST]
 
--h    name label (host name) of XenServer host on which to provision the VM
 -t    name label of the VM template to be copied
 -v    name label of the new VM
+-h    name label (host name) of XenServer host on which to provision the VM
 EOF
     exit 2
 }
@@ -21,6 +21,7 @@ if ! . "$XS_FUNCTIONS"; then
     exit 1
 fi
 
+initialize HOST TEMPLATE VM
 while getopts :h:t:v: OPT; do
     case $OPT in
         h)
@@ -38,9 +39,10 @@ while getopts :h:t:v: OPT; do
 done
 shift $(( OPTIND - 1 ))
 [ -n "$1" ] && usage
-REQUIRED=( "HOST" "TEMPLATE" "VM" )
+REQUIRED=("TEMPLATE" "VM" )
 have_required "${REQUIRED[@]}" || usage
 
+[ -n "$HOST" ] || HOST=$(hostname)
 get_local_sr_uuid "$HOST" || exit 1
 echo "SR UUID: $SR_UUID"
 
