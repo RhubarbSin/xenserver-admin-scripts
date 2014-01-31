@@ -49,7 +49,7 @@ function get_uuids() {
 # get value of param name from UUID; set global variable PARAM_VALUE
 function get_param() {
     [ $# -ne 3 ] && return 1
-    PARAM_VALUE=$(xe "$1"-param-get param-name="$2" uuid="$3" --minimal)
+    PARAM_VALUE=$(xe "$1"-param-get param-name="$2" uuid="$3")
     return $?
 }
 
@@ -146,13 +146,15 @@ function vm_host() {
     # check for VDIs on local SR
     local VBD_UUIDS
     vm_vbd_uuids "$VM_UUID"
-    local VBD_UUID SR_UUID SR_HOST
+    local VBD_UUID
     for VBD_UUID in ${VBD_UUIDS[@]}; do
-        vbd_vdi_uuid "$VBD_UUID"
+        get_param vbd vdi-uuid "$VBD_UUID"
+        local VDI_UUID="$PARAM_VALUE"
+        [ "$VDI_UUID" == "<not in database>" ] && continue
         get_param vdi sr-uuid "$VDI_UUID"
-        SR_UUID="$PARAM_VALUE"
+        local SR_UUID="$PARAM_VALUE"
         get_param sr host "$SR_UUID"
-        SR_HOST="$PARAM_VALUE"
+        local SR_HOST="$PARAM_VALUE"
         if [ "$SR_HOST" != "<shared>" ]; then
             if [ -z "$VM_HOST" ]; then
                 VM_HOST="$SR_HOST"
