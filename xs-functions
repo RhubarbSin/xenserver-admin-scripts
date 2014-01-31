@@ -50,7 +50,12 @@ function get_uuids() {
 function get_param() {
     [ $# -ne 3 ] && return 1
     PARAM_VALUE=$(xe "$1"-param-get param-name="$2" uuid="$3")
-    return $?
+    RETURN="$?"
+    if [ "$PARAM_VALUE" == "<not in database>" ]; then
+        return 2
+    else
+        return "$RETURN"
+    fi
 }
 
 # get SR UUID for local storage on host; set global variable SR_UUID
@@ -69,49 +74,49 @@ function get_local_sr_uuid() {
 function vm_vif_uuids() {
     [ -z "$1" ] && return 1
     VIF_UUIDS=( $(xe vif-list vm-uuid="$1" --minimal | sed -e 's/,/ /g') )
-    return $?
+    return "$?"
 }
 
 # get array of VBD UUIDs from VM UUID; set global variable VBD_UUIDS
 function vm_vbd_uuids() {
     [ -z "$1" ] && return 1
     VBD_UUIDS=( $(xe vbd-list vm-uuid="$1" --minimal | sed -e 's/,/ /g') )
-    return $?
+    return "$?"
 }
 
 # get network UUID from VIF UUID; set global variable NETWORK_UUID
 function vif_network_uuid() {
     [ -z "$1" ] && return 1
     NETWORK_UUID=$(xe vif-param-get param-name=network-uuid uuid="$1")
-    return $?
+    return "$?"
 }
 
 # get VDI UUID from VBD UUID; set global variable VDI_UUID
 function vbd_vdi_uuid() {
     [ -z "$1" ] && return 1
     VDI_UUID=$(xe vbd-param-get param-name=vdi-uuid uuid="$1")
-    return $?
+    return "$?"
 }
 
 # get VIF device from VIF UUID; set global variable VIF_DEVICE
 function vif_device() {
     [ -z "$1" ] && return 1
     VIF_DEVICE=$(xe vif-param-get param-name=device uuid="$1")
-    return $?
+    return "$?"
 }
 
 # get PIF VLAN from network UUID; set global variable PIF_VLAN
 function network_pif_vlan() {
     [ -z "$1" ] && return 1
     PIF_VLAN=$(xe pif-list params=VLAN network-uuid="$1" --minimal)
-    return $?
+    return "$?"
 }
 
 # get host name label from host UUID; set global variable HOST_NAME_LABEL
 function host_name() {
     [ -z "$1" ] && return 1
     HOST_NAME_LABEL=$(xe host-param-get param-name=name-label uuid="$1")
-    return $?
+    return "$?"
 }
 
 # get name label of host running VM or preferred host for VM or host
