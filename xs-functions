@@ -207,3 +207,11 @@ function have_required() {
     done
     return 0
 }
+
+# set all arguments to empty string
+function initialize() {
+    for VAR_NAME in $*; do
+        eval "${VAR_NAME}"=""
+    done
+    return 0
+}
