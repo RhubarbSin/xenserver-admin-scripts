@@ -112,13 +112,6 @@ function network_pif_vlan() {
     return "$?"
 }
 
-# get host name label from host UUID; set global variable HOST_NAME_LABEL
-function host_name() {
-    [ -z "$1" ] && return 1
-    HOST_NAME_LABEL=$(xe host-param-get param-name=name-label uuid="$1")
-    return "$?"
-}
-
 # get name label of host running VM or preferred host for VM or host
 # housing VM's primary VDI (assumed to be hda for HVM and xvda for
 # PV); include type of association (resident, affinity, SR) if a
