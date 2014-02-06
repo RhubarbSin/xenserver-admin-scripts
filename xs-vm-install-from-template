@@ -300,11 +300,13 @@ function get_install_repository() {
 }
 
 function get_kickstart_url() {
+    [ -n "$KICKSTART_URL" ] && return
     echo -e "\nEnter URL of kickstart file (empty if none): \c"
     read KICKSTART_URL
 }
 
 function get_preseed_url() {
+    [ -n "$PRESEED_URL" ] && return
     echo -e "\nEnter URL of preseed file (empty if none): \c"
     read PRESEED_URL
 }
