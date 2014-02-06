@@ -630,9 +630,9 @@ function connect_to_console() {
 function show_command_line() {
     # show command to recreate this VM
     echo -e "\nThe following command can be used to recreate this VM:\n"
-    echo -e "$0 -l $VM_NAME_LABEL -c $VCPUS -m $MEMORY_SIZE -h $DISK_SIZE -s \"$SR_UUID\" -n \"$NETWORK_UUID\"\c"
+    echo -e "$0 -l $VM_NAME_LABEL -c $VCPUS -m $MEMORY_SIZE -h $DISK_SIZE -s "$SR_UUID" -n "$NETWORK_UUID"\c"
     [ -n "$MAC" ] && echo -e " -p $MAC\c"
-    echo -e " -t \"$TEMPLATE_UUID\" -d $DISTRIBUTION -v $VERSION -a $ARCHITECTURE -i $INSTALL_REPO_URL\c"
+    echo -e " -t "$TEMPLATE_UUID" -d $DISTRIBUTION -v $VERSION -a $ARCHITECTURE -i $INSTALL_REPO_URL\c"
     [ -n "$KICKSTART_URL" ] && echo -e " -k $KICKSTART_URL"
     [ -n "$LOG" ] && echo -e " -o $LOG\c"
     echo
