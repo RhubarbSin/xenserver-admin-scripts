@@ -48,9 +48,10 @@ These are works in progress for performing common XenServer CLI tasks. They are 
 *** xs-vm-install-from-template
     - [ ] cli bug?
     - [X] set VCPUs
+    - [ ] HVM-boot-params for Other install media
     - [ ] memory limits options
     - [ ] interactive bugs
       - [ ] empty string for dist
       - [ ] empty string for arch
       - [ ] empty string for version?
-    - [ ] text/vnc console connection option
+    - [ ] PV text/vnc console connection option
