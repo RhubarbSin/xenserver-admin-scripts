@@ -461,12 +461,11 @@ function set_boot_params() {
 #
 
 function get_domain_id() {
-    echo -e "Getting VM's domain ID...\c"
     CMD="xe vm-list params=dom-id uuid=$VM_UUID --minimal"
     [ -n "$LOG" ] && echo "$CMD" >> "$LOG"
     DOM_ID=$($CMD)
     [ -z "$DOM_ID" ] && exit 1
-    echo "$DOM_ID"
+    echo "Domain ID: $DOM_ID"
 }
 
 ########################################################################
