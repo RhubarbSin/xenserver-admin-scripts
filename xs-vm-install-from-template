@@ -336,6 +336,8 @@ function get_log_commands() {
     if prompt "Log xe commands to $LOG"; then
         echo "Logging commands to $LOG."
         [ -e "$LOG" ] && rm -i "$LOG"
+    else
+        LOG=""
     fi
 }
 
