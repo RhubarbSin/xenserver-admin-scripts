@@ -1,9 +1,15 @@
 #!/bin/bash
+#
+# This script assumes a rescue boot via network.
+#
+
+ADD_ARGS="ks=http://10.1.0.1/linux-install/centos/centos-rescue.ks rescue"
 
 function usage() {
     cat <<EOF
 
-Toggle a VM's "PV-args" parameter between network rescue boot and empty.
+Toggle a VM's "PV-args" and "PV-bootloader" parameters between network
+rescue boot and regular boot.
 
 Usage: ${0##*/} VM
 
@@ -25,13 +31,16 @@ fi
 get_uuids vm "$VM" || exit 1
 VM_UUID="${UUIDS[0]}"
 echo "VM UUID: $VM_UUID"
-PV_ARGS=$(xe vm-list params=PV-args uuid="$VM_UUID" --minimal)
-if [[ "$PV_ARGS" =~ rescue ]]; then
+get_param vm PV-args "$VM_UUID"
+PV_ARGS="$PARAM_VALUE"
+if [[ "$PV_ARGS" =~ $ADD_ARGS ]]; then
     echo -e "Disabling network rescue boot...\c"
-    CMD="xe vm-param-set PV-args= PV-bootloader=pygrub uuid=$VM_UUID"
+    PV_ARGS=${PV_ARGS/$ADD_ARGS/}
+    CMD="xe vm-param-set PV-args=\"$PV_ARGS\" PV-bootloader=pygrub uuid=$VM_UUID"
 else
     echo -e "Enabling network rescue boot...\c"
-    CMD="xe vm-param-set PV-args='ks=http://10.1.0.1/linux-install/centos/centos-rescue.ks rescue' PV-bootloader=eliloader uuid=$VM_UUID"
+    PV_ARGS="$PV_ARGS $ADD_ARGS"
+    CMD="xe vm-param-set PV-args=\"$PV_ARGS\" PV-bootloader=eliloader uuid=$VM_UUID"
 fi
 if eval "$CMD"; then
     echo "done."
