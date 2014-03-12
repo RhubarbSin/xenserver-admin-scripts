@@ -3,7 +3,8 @@
 function usage() {
     cat <<EOF
 
-Toggle a VM's "PV-args" parameter between "single" and empty.
+Toggle a VM's "PV-args" parameter between between single-user boot and
+regular boot.
 
 Usage: ${0##*/} VM
 
@@ -25,14 +26,16 @@ fi
 get_uuids vm "$VM" || exit 1
 VM_UUID="${UUIDS[0]}"
 echo "VM UUID: $VM_UUID"
-PV_ARGS=$(xe vm-list params=PV-args uuid="$VM_UUID" --minimal)
+get_param vm PV-args "$VM_UUID"
+PV_ARGS="$PARAM_VALUE"
 if [[ "$PV_ARGS" =~ single ]]; then
     echo -e "Disabling single-user boot...\c"
-    CMD="xe vm-param-clear param-name=PV-args uuid=$VM_UUID"
+    PV_ARGS=${PV_ARGS/single/}
 else
     echo -e "Enabling single-user boot...\c"
-    CMD="xe vm-param-set PV-args=single uuid=$VM_UUID"
+    PV_ARGS="$PV_ARGS single"
 fi
+CMD="xe vm-param-set PV-args=\"$PV_ARGS\" uuid=$VM_UUID"
 if eval "$CMD"; then
     echo "done."
 else
