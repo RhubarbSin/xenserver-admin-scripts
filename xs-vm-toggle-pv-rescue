@@ -33,12 +33,13 @@ PV_ARGS="$PARAM_VALUE"
 if [[ "$PV_ARGS" =~ $ADD_ARGS ]]; then
     echo -e "Disabling network rescue boot...\c"
     PV_ARGS=${PV_ARGS/$ADD_ARGS/}
-    CMD="xe vm-param-set PV-args=\"$PV_ARGS\" PV-bootloader=pygrub uuid=$VM_UUID"
+    PV_BOOTLOADER="pygrub"
 else
     echo -e "Enabling network rescue boot...\c"
     PV_ARGS="$PV_ARGS $ADD_ARGS"
-    CMD="xe vm-param-set PV-args=\"$PV_ARGS\" PV-bootloader=eliloader uuid=$VM_UUID"
+    PV_BOOTLOADER="eliloader"
 fi
+CMD="xe vm-param-set PV-args=\"$PV_ARGS\" PV-bootloader=$PV_BOOTLOADER uuid=$VM_UUID"
 if eval "$CMD"; then
     echo "done."
 else
