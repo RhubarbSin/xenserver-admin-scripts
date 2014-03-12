@@ -1,7 +1,4 @@
 #!/bin/bash
-#
-# This script assumes a rescue boot via network.
-#
 
 ADD_ARGS="ks=http://10.1.0.1/linux-install/centos/centos-rescue.ks rescue"
 
