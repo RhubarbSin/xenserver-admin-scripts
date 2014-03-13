@@ -176,8 +176,7 @@ function set_params() {
     if [ $# -lt 4 ] || [ $(( $# % 2 )) -ne 0 ]; then
         return 1
     fi
-    local OBJECT="$1"
-    local UUID="$2"
+    local OBJECT="$1" UUID="$2"
     shift 2
     local CMD="xe $OBJECT-param-set uuid=$UUID"
     local PARAM_NAME PARAM_VALUE
@@ -192,6 +191,48 @@ function set_params() {
     return "$?"
 }
 
+# set values of map param for UUID; input args are key/value pairs
+# $1: object type
+# $2: object UUID
+# $3: name of map parameter
+# $...: keys and values of map parameter
+function set_map_keys() {
+    if [ $# -lt 5 ] || [ $(( $# % 2 )) -ne 1 ]; then
+        return 1
+    fi
+    local OBJECT="$1" UUID="$2" PARAM_NAME="$3"
+    shift 3
+    local MAP_KEY MAP_VALUE
+    local CMD="xe $OBJECT-param-set uuid=$UUID"
+    while [ -n "$1" ]; do
+        MAP_KEY="$1"
+        shift
+        MAP_VALUE="$1"
+        shift
+        CMD="$CMD $PARAM_NAME:$MAP_KEY=$MAP_VALUE"
+    done
+    eval "$CMD"
+    return "$?"
+}
+
+# remove keys from map param for UUID
+# $1: object type
+# $2: object UUID
+# $3: name of map parameter
+# $...: keys of map parameter
+function remove_map_keys() {
+    [ $# -lt 4 ] && return 1
+    local OBJECT="$1" UUID="$2" PARAM_NAME="$3"
+    shift 3
+    local CMD="xe vm-param-remove uuid=$UUID param-name=$PARAM_NAME" MAP_KEY
+    while [ -n "$1" ]; do
+        MAP_KEY="$1"
+        shift
+        eval "$CMD param-key=$MAP_KEY" || return "$?"
+    done
+    return "$?"
+}
+# 
 ########################################################################
 # 
 # Functions for input validation
