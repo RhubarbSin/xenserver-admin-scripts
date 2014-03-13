@@ -4,7 +4,7 @@ These are works in progress for performing common XenServer CLI tasks. They are 
 * Assumptions
   - name labels are unique among each type of object (VM, SR, network...)
   - host name label is same as hostname
-  - each host's local storage has name label 'Local storage'
+  - each host's local storage repository has name label 'Local storage'
 
 * Environment variables
   - XE_SERVER
