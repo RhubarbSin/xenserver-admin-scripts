@@ -47,7 +47,8 @@ get_uuids vm "$VM" || exit 1
 VM_UUID="${UUIDS[0]}"
 echo "VM UUID: $VM_UUID"
 
-xe vm-param-set memory-static-max="$STATIC_MAX" \
-    memory-dynamic-max="$DYNAMIC_MAX" \
-    memory-dynamic-min="$DYNAMIC_MIN" \
-    memory-static-min="$STATIC_MIN" uuid="$VM_UUID"
+set_params vm "$VM_UUID" \
+    memory-static-max "$STATIC_MAX" \
+    memory-dynamic-max "$DYNAMIC_MAX" \
+    memory-dynamic-min "$DYNAMIC_MIN" \
+    memory-static-min "$STATIC_MIN"
