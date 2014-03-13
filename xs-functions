@@ -21,7 +21,7 @@ XE_PASSWORD="${XE_PASSWORD=root!!!}"
 
 ########################################################################
 # 
-# Functions for XenServer object queries
+# Functions for XenServer object commands
 #
 
 # get array of UUIDs from name label; set global variable UUIDS
@@ -169,6 +169,27 @@ function vm_host() {
     else
         return 1
     fi
+}
+
+# set values of params for UUID; interpret input args as list of two-tuples
+function set_params() {
+    if [ $# -lt 4 ] || [ $(( $# % 2 )) -ne 0 ]; then
+        return 1
+    fi
+    local OBJECT="$1"
+    local UUID="$2"
+    shift 2
+    local CMD="xe $OBJECT-param-set uuid=$UUID"
+    local PARAM_NAME PARAM_VALUE
+    while [ -n "$1" ]; do
+        PARAM_NAME="$1"
+        shift
+        PARAM_VALUE="$1"
+        shift
+        CMD="$CMD $PARAM_NAME=$PARAM_VALUE"
+    done
+    eval "$CMD"
+    return "$?"
 }
 
 ########################################################################
