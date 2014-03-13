@@ -36,7 +36,7 @@ if [[ "$PV_ARGS" =~ $ADD_ARGS ]]; then
     PV_BOOTLOADER="pygrub"
 else
     echo -e "Enabling network rescue boot...\c"
-    PV_ARGS="$PV_ARGS $ADD_ARGS"
+    PV_ARGS=$(echo $PV_ARGS $ADD_ARGS) # use word-splitting to collapse spaces
     PV_BOOTLOADER="eliloader"
 fi
 CMD="xe vm-param-set PV-args=\"$PV_ARGS\" PV-bootloader=$PV_BOOTLOADER uuid=$VM_UUID"
