@@ -86,15 +86,6 @@ function get_param() {
     fi
 }
 
-# get array of VIF UUIDs from VM UUID; set global variable VIF_UUIDS
-function vm_vif_uuids() {
-    [ -z "$1" ] && return 2
-    VI_UUIDS=()
-    local XE_OUT=$(xe vif-list vm-uuid="$1" --minimal)
-    VIF_UUIDS=( ${XE_OUT//,/ } )
-    return $?
-}
-
 # get array of VBD UUIDs from VM UUID; set global variable VBD_UUIDS
 function vm_vbd_uuids() {
     [ -z "$1" ] && return 2
