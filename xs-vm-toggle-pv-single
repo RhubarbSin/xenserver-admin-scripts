@@ -26,7 +26,7 @@ fi
 get_uuid vm "$VM" || exit 1
 VM_UUID="$UUID"
 echo "VM UUID: $VM_UUID"
-get_param vm PV-args "$VM_UUID"
+get_param vm "$VM_UUID" PV-args
 PV_ARGS="$PARAM_VALUE"
 if [[ "$PV_ARGS" =~ single ]]; then
     echo -e "Disabling single-user boot...\c"

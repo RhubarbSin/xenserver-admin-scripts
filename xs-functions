@@ -78,15 +78,13 @@ function get_uuid() {
 }
 
 # get value of param name from UUID; set global variable PARAM_VALUE
+# $1: object type
+# $2: object UUID
+# $3: name of parameter
 function get_param() {
     [ $# -ne 3 ] && return 2
-    PARAM_VALUE=$(xe "$1"-param-get param-name="$2" uuid="$3")
-    RETURN=$?
-    if [ "$PARAM_VALUE" == "<not in database>" ]; then
-        return 2
-    else
-        return "$RETURN"
-    fi
+    PARAM_VALUE=$(xe "$1"-param-get uuid="$2" param-name="$3")
+    return $?
 }
 
 # get name label of host running VM or preferred host for VM or host
@@ -105,14 +103,14 @@ function vm_host() {
     VM_HOST=""
     local VM_ASSOC PARAM_VALUE
     # check for residency
-    if get_param vm resident-on "$VM_UUID" && \
-        get_param host name-label "$PARAM_VALUE"; then
+    if get_param vm "$VM_UUID" resident-on && \
+        get_param host "$PARAM_VALUE" name-label; then
         VM_HOST="$PARAM_VALUE"
         (( ASSOC )) && VM_ASSOC=( "resident" )
     fi
     # check for affinity
-    if get_param vm affinity "$VM_UUID" && \
-        get_param host name-label "$PARAM_VALUE"; then
+    if get_param vm "$VM_UUID" affinity && \
+        get_param host "$PARAM_VALUE" name-label; then
         local AFFINITY_HOST="$PARAM_VALUE"
         [ -z "$VM_HOST" ] && VM_HOST="$AFFINITY_HOST"
         if [ -n "$VM_HOST" ] && [ "$VM_HOST" == "$AFFINITY_HOST" ]; then
@@ -124,11 +122,11 @@ function vm_host() {
     get_uuids vbd "" vm-uuid "$VM_UUID"
     VBD_UUIDS=( ${UUIDS[*]} )
     for VBD_UUID in ${VBD_UUIDS[@]}; do
-        get_param vbd vdi-uuid "$VBD_UUID" || continue
+        get_param vbd "$VBD_UUID" vdi-uuid || continue
         local VDI_UUID="$PARAM_VALUE"
-        get_param vdi sr-uuid "$VDI_UUID" || continue
+        get_param vdi "$VDI_UUID" sr-uuid || continue
         local SR_UUID="$PARAM_VALUE"
-        get_param sr host "$SR_UUID" || continue
+        get_param sr "$SR_UUID" host || continue
         local SR_HOST="$PARAM_VALUE"
         if [ "$SR_HOST" != "<shared>" ]; then
             if [ -z "$VM_HOST" ]; then
@@ -210,6 +208,7 @@ function remove_map_keys() {
     done
     return $?
 }
+
 # 
 ########################################################################
 # 

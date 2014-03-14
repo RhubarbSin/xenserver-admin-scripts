@@ -50,9 +50,9 @@ else
 fi
 VM_UUIDS=$(xe vm-list $OPT_STR --minimal | sed -e 's/,/ /g')
 for VM_UUID in $VM_UUIDS; do
-    get_param vm name-label "$VM_UUID" || continue
+    get_param vm "$VM_UUID" name-label || continue
     VM_NAME_LABEL="$PARAM_VALUE"
-    get_param vm power-state "$VM_UUID" || continue
+    get_param vm "$VM_UUID" power-state || continue
     VM_POWER_STATE="$PARAM_VALUE"
     STRING=""
     ! (( SHORT )) && STRING="$VM_UUID\t"

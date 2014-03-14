@@ -28,9 +28,9 @@ echo "VM UUID: $VM_UUID"
 get_uuids vif "" vm-uuid "$VM_UUID"
 VIF_UUIDS=( ${UUIDS[*]} )
 for VIF_UUID in ${VIF_UUIDS[@]}; do
-    get_param vif device "$VIF_UUID"
+    get_param vif "$VIF_UUID" device
     VIF_DEVICE="$PARAM_VALUE"
-    get_param vif network-uuid "$VIF_UUID"
+    get_param vif "$VIF_UUID" network-uuid
     NETWORK_UUID="$PARAM_VALUE"
     PIF_VLAN=$(xe pif-list params=VLAN network-uuid="$NETWORK_UUID" --minimal)
     echo "$VIF_DEVICE: VLAN $PIF_VLAN"
