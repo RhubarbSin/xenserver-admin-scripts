@@ -96,13 +96,6 @@ function vif_network_uuid() {
     return $?
 }
 
-# get PIF VLAN from network UUID; set global variable PIF_VLAN
-function network_pif_vlan() {
-    [ -z "$1" ] && return 2
-    PIF_VLAN=$(xe pif-list params=VLAN network-uuid="$1" --minimal)
-    return $?
-}
-
 # get name label of host running VM or preferred host for VM or host
 # housing VM's primary VDI (assumed to be hda for HVM and xvda for
 # PV); include type of association (resident, affinity, SR) if a
