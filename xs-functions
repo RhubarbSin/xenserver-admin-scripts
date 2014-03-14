@@ -29,7 +29,7 @@ XE_PASSWORD="${XE_PASSWORD=root!!!}"
 # $2: name label (may be empty string)
 # $...: parameter name/value pairs (optional)
 function get_uuids() {
-    [ $# -lt 2 ] && return 2
+    [ $# -lt 2 ] || [ $(( $# % 2 )) -ne 0 ] && return 2
     UUIDS=()
     local OBJECT="$1" NAME_LABEL="$2"
     shift 2
