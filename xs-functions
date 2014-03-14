@@ -27,7 +27,7 @@ XE_PASSWORD="${XE_PASSWORD=root!!!}"
 # get array of UUIDs from name label; set global variable UUIDS
 function get_uuids() {
     [ $# -ne 2 ] && return 2
-    UUIDS=""
+    UUIDS=()
     local XE_OUT=$(xe "$1"-list name-label="$2" --minimal)
     local OBJECT="$1"
     for TYPE in vm vif vbd vdi sr pbd pif; do
@@ -36,7 +36,7 @@ function get_uuids() {
     if [ -z "$XE_OUT" ]; then
         return 1
     elif [[ "$XE_OUT" =~ , ]]; then
-        UUIDS=( $(echo "$XE_OUT" | sed -e 's/,/ /g') )
+        UUIDS=( ${XE_OUT//,/ } )
         return 3
     else
         UUIDS=( "$XE_OUT" )
@@ -89,14 +89,18 @@ function get_local_sr_uuid() {
 # get array of VIF UUIDs from VM UUID; set global variable VIF_UUIDS
 function vm_vif_uuids() {
     [ -z "$1" ] && return 2
-    VIF_UUIDS=( $(xe vif-list vm-uuid="$1" --minimal | sed -e 's/,/ /g') )
+    VI_UUIDS=()
+    local XE_OUT=$(xe vif-list vm-uuid="$1" --minimal)
+    VIF_UUIDS=( ${XE_OUT//,/ } )
     return $?
 }
 
 # get array of VBD UUIDs from VM UUID; set global variable VBD_UUIDS
 function vm_vbd_uuids() {
     [ -z "$1" ] && return 2
-    VBD_UUIDS=( $(xe vbd-list vm-uuid="$1" --minimal | sed -e 's/,/ /g') )
+    VBD_UUIDS=()
+    local XE_OUT=$(xe vbd-list vm-uuid="$1" --minimal)
+    VBD_UUIDS=( ${XE_OUT//,/ } )
     return $?
 }
 
@@ -134,6 +138,7 @@ function network_pif_vlan() {
 # second argument is passed
 function vm_host() {
     [ -z "$1" ] && return 2
+    [ $# -gt 2 ] && return 2
     local VM_UUID="$1"
     if [ -n "$2" ]; then
         local ASSOC=1
