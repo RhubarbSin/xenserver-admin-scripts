@@ -191,11 +191,11 @@ function set_params() {
     return "$?"
 }
 
-# set values of map param for UUID; input args are key/value pairs
+# set values of map param for UUID
 # $1: object type
 # $2: object UUID
 # $3: name of map parameter
-# $...: keys and values of map parameter
+# $...: key/value pairs of map parameter
 function set_map_keys() {
     if [ $# -lt 5 ] || [ $(( $# % 2 )) -ne 1 ]; then
         return 1
