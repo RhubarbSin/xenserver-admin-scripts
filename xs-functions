@@ -34,16 +34,32 @@ function get_uuids() {
         [ "$1" == "$TYPE" ] && local OBJECT=$(echo "$1" | tr a-z A-Z) && break
     done
     if [ -z "$XE_OUT" ]; then
-        (( QUIET )) || echo "$OBJECT not found"
         return 1
     elif [[ "$XE_OUT" =~ , ]]; then
         UUIDS=( $(echo "$XE_OUT" | sed -e 's/,/ /g') )
-        (( QUIET )) || echo "Multiple ${OBJECT}s found"
         return 3
     else
         UUIDS=( "$XE_OUT" )
         return 0
     fi
+}
+
+function get_uuid() {
+    [ $# -ne 2 ] && return 2
+    UUID=""
+    get_uuids "$1" "$2"
+    case $? in
+        0)
+            UUID="${UUIDS[0]}"
+            return 0
+            ;;
+        3)
+            (( QUIET )) || echo "Multiple ${OBJECT}s found"
+            return 1
+            ;;
+        *)
+            return $?
+    esac
 }
 
 # get value of param name from UUID; set global variable PARAM_VALUE
