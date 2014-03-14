@@ -96,13 +96,6 @@ function vif_network_uuid() {
     return $?
 }
 
-# get VDI UUID from VBD UUID; set global variable VDI_UUID
-function vbd_vdi_uuid() {
-    [ -z "$1" ] && return 2
-    VDI_UUID=$(xe vbd-param-get param-name=vdi-uuid uuid="$1")
-    return $?
-}
-
 # get VIF device from VIF UUID; set global variable VIF_DEVICE
 function vif_device() {
     [ -z "$1" ] && return 2

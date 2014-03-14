@@ -58,7 +58,8 @@ echo -e "done.\nVM UUID: $VM_UUID"
 get_uuids vbd "" vm-uuid "$VM_UUID"
 VBD_UUIDS=( ${UUIDS[*]} )
 for VBD_UUID in ${VBD_UUIDS[@]}; do
-    vbd_vdi_uuid "$VBD_UUID"
+    get_param vbd vdi-uuid "$VBD_UUID" || exit 1
+    VDI_UUID="$PARAM_VALUE"
     if [ "$VDI_UUID" == '<not in database>' ];then
         continue
     else
