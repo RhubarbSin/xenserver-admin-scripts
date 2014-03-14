@@ -15,7 +15,7 @@ EOF
     exit 2
 }
 
-[ -z "$1" ] || [ "$#" -gt 1 ] && usage
+[ -z "$1" ] || [ $# -gt 1 ] && usage
 VM="$1"
 
 MYDIR=$(dirname $0)
