@@ -28,8 +28,7 @@ fi
 get_uuid vm "$VM" || exit 1
 VM_UUID="$UUID"
 echo "VM UUID: $VM_UUID"
-get_param vm "$VM_UUID" PV-args
-PV_ARGS="$PARAM_VALUE"
+PV_ARGS=$(get_param vm "$VM_UUID" PV-args)
 if [[ "$PV_ARGS" =~ $ADD_ARGS ]]; then
     echo -e "Disabling network rescue boot...\c"
     PV_ARGS=${PV_ARGS/$ADD_ARGS/}

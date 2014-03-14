@@ -21,9 +21,9 @@ function destroy() {
         prompt "Remove VM" || return 0
     fi
     echo -e "Getting power state of VM...\c"
-    get_param vm "$VM_UUID" power-state || return 1
-    echo "$PARAM_VALUE."
-    if [ "$PARAM_VALUE" != "halted" ]; then
+    POWER_STATE=$(get_param vm "$VM_UUID" power-state) || return 1
+    echo "$POWER_STATE."
+    if [ "$POWER_STATE" != "halted" ]; then
         echo -e "Shutting down VM...\c"
         if ! xe vm-shutdown uuid="$VM_UUID" > /dev/null 2>&1; then
             xe vm-shutdown vm="$VM_UUID" --force
@@ -44,11 +44,10 @@ function destroy_vdis() {
     local VBD_UUID
     for VBD_UUID in ${VBD_UUIDS[@]}; do
         echo "VBD UUID: $VBD_UUID"
-        get_param vbd "$VBD_UUID" vdi-uuid || return 1
-        VDI_UUID="$PARAM_VALUE"
+        VDI_UUID=$(get_param vbd "$VBD_UUID" vdi-uuid) || return 1
         [ "$VDI_UUID" == "<not in database>" ] && continue
-        get_param vdi "$VDI_UUID" read-only || return 1
-        [ "$PARAM_VALUE" == "true" ] && continue
+        READ_ONLY=$(get_param vdi "$VDI_UUID" read-only) || return 1
+        [ "$READ_ONLY" == "true" ] && continue
         echo "VDI UUID: $VDI_UUID"
         echo -e "Destroying VDI...\c"
         xe vdi-destroy uuid="$VDI_UUID" || return 1

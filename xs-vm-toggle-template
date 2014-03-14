@@ -41,7 +41,7 @@ case $? in
         if (( SHOW )); then
             IS="is not"
         else
-            if xe vm-param-set is-a-template=true uuid="$UUID"; then
+            if set_param vm "$UUID" is-a-template true; then
                 IS="now is"
             else
                 exit 1
@@ -53,7 +53,7 @@ case $? in
         if (( SHOW )); then
             IS="is"
         else
-            if xe template-param-set is-a-template=false uuid="$UUID"; then
+            if set_param vm "$UUID" is-a-template false; then
                 IS="now is not"
             else
                 exit 1

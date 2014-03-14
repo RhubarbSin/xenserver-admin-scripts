@@ -77,13 +77,13 @@ function get_uuid() {
     esac
 }
 
-# get value of param name from UUID; set global variable PARAM_VALUE
+# get value of param name from UUID
 # $1: object type
 # $2: object UUID
 # $3: name of parameter
 function get_param() {
     [ $# -ne 3 ] && return 2
-    PARAM_VALUE=$(xe "$1"-param-get uuid="$2" param-name="$3")
+    echo "$(xe "$1"-param-get uuid="$2" param-name="$3")"
     return $?
 }
 
@@ -103,15 +103,15 @@ function vm_host() {
     VM_HOST=""
     local VM_ASSOC PARAM_VALUE
     # check for residency
-    if get_param vm "$VM_UUID" resident-on && \
-        get_param host "$PARAM_VALUE" name-label; then
-        VM_HOST="$PARAM_VALUE"
+    local RESIDENT_ON_UUID=$(get_param vm "$VM_UUID" resident-on)
+    if [ "$RESIDENT_ON_UUID" != "<not in database>"  ] && \
+        VM_HOST=$(get_param host "$RESIDENT_ON_UUID" name-label); then
         (( ASSOC )) && VM_ASSOC=( "resident" )
     fi
     # check for affinity
-    if get_param vm "$VM_UUID" affinity && \
-        get_param host "$PARAM_VALUE" name-label; then
-        local AFFINITY_HOST="$PARAM_VALUE"
+    local AFFINITY_UUID=$(get_param vm "$VM_UUID" affinity)
+    if [ "$AFFINITY_UUID" != "<not in database>" ] && \
+        local AFFINITY_HOST=$(get_param host "$AFFINITY_UUID" name-label); then
         [ -z "$VM_HOST" ] && VM_HOST="$AFFINITY_HOST"
         if [ -n "$VM_HOST" ] && [ "$VM_HOST" == "$AFFINITY_HOST" ]; then
             (( ASSOC )) && VM_ASSOC=( ${VM_ASSOC[*]} "affinity" )
@@ -120,14 +120,11 @@ function vm_host() {
     # check for VDIs on local SR
     local VBD_UUIDS VBD_UUID
     get_uuids vbd "" vm-uuid "$VM_UUID"
-    VBD_UUIDS=( ${UUIDS[*]} )
+    local VBD_UUIDS=( ${UUIDS[*]} )
     for VBD_UUID in ${VBD_UUIDS[@]}; do
-        get_param vbd "$VBD_UUID" vdi-uuid || continue
-        local VDI_UUID="$PARAM_VALUE"
-        get_param vdi "$VDI_UUID" sr-uuid || continue
-        local SR_UUID="$PARAM_VALUE"
-        get_param sr "$SR_UUID" host || continue
-        local SR_HOST="$PARAM_VALUE"
+        local VDI_UUID=$(get_param vbd "$VBD_UUID" vdi-uuid) || continue
+        local SR_UUID=$(get_param vdi "$VDI_UUID" sr-uuid) || continue
+        local SR_HOST=$(get_param sr "$SR_UUID" host) || continue
         if [ "$SR_HOST" != "<shared>" ]; then
             if [ -z "$VM_HOST" ]; then
                 VM_HOST="$SR_HOST"
@@ -147,7 +144,11 @@ function vm_host() {
     fi
 }
 
-# set values of params for UUID; interpret input args as list of two-tuples
+# set values of parameters for UUID
+# $1: object type
+# $2: object UUID
+# $3: name of parameter
+# $...: key/value pairs of parameters
 function set_params() {
     if [ $# -lt 4 ] || [ $(( $# % 2 )) -ne 0 ]; then
         return 2

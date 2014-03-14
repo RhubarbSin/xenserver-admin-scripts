@@ -58,14 +58,15 @@ echo -e "done.\nVM UUID: $VM_UUID"
 get_uuids vbd "" vm-uuid "$VM_UUID"
 VBD_UUIDS=( ${UUIDS[*]} )
 for VBD_UUID in ${VBD_UUIDS[@]}; do
-    get_param vbd "$VBD_UUID" vdi-uuid || exit 1
-    VDI_UUID="$PARAM_VALUE"
+    VDI_UUID=$(get_param vbd "$VBD_UUID" vdi-uuid) || exit 1
     if [ "$VDI_UUID" == '<not in database>' ];then
         continue
     else
+        READ_ONLY=$(get_param vdi "$VDI_UUID" read-only) || exit 1
+        [ "$READ_ONLY" == "true" ] && continue
         echo "VDI UUID: $VDI_UUID"
         echo -e "Renaming VDI...\c"
-        if xe vdi-param-set name-label="$VM" uuid="$VDI_UUID"; then
+        if set_params vdi "$VDI_UUID" name-label "$VM"; then
             echo "done."
         fi
     fi
