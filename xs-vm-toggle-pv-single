@@ -35,8 +35,7 @@ else
     echo -e "Enabling single-user boot...\c"
     PV_ARGS=$(echo $PV_ARGS single) # use word-splitting to collapse spaces
 fi
-CMD="xe vm-param-set PV-args=\"$PV_ARGS\" uuid=$VM_UUID"
-if eval "$CMD"; then
+if set_params vm "$VM_UUID" PV-args "$PV_ARGS"; then
     echo "done."
 else
     exit 1

@@ -39,8 +39,7 @@ else
     PV_ARGS=$(echo $PV_ARGS $ADD_ARGS) # use word-splitting to collapse spaces
     PV_BOOTLOADER="eliloader"
 fi
-CMD="xe vm-param-set PV-args=\"$PV_ARGS\" PV-bootloader=$PV_BOOTLOADER uuid=$VM_UUID"
-if eval "$CMD"; then
+if set_params vm "$VM_UUID" PV-args "$PV_ARGS" PV-bootloader "$PV_BOOTLOADER"; then
     echo "done."
 else
     exit 1
