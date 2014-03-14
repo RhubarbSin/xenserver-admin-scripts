@@ -74,18 +74,6 @@ function get_uuid() {
     esac
 }
 
-# get SR UUID for local storage on host; set global variable SR_UUID
-function get_local_sr_uuid() {
-    [ -z "$1" ] && return 2
-    SR_UUID=$(xe sr-list params=uuid name-label='Local storage' host="$1" --minimal)
-    if [ -z "$SR_UUID" ]; then
-        echo "Storage repository \"Local storage\" on host $HOST not found"
-        return 1
-    else
-        return 0
-    fi
-}
-
 # get value of param name from UUID; set global variable PARAM_VALUE
 function get_param() {
     [ $# -ne 3 ] && return 2
