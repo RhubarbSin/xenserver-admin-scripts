@@ -96,13 +96,6 @@ function vif_network_uuid() {
     return $?
 }
 
-# get VIF device from VIF UUID; set global variable VIF_DEVICE
-function vif_device() {
-    [ -z "$1" ] && return 2
-    VIF_DEVICE=$(xe vif-param-get param-name=device uuid="$1")
-    return $?
-}
-
 # get PIF VLAN from network UUID; set global variable PIF_VLAN
 function network_pif_vlan() {
     [ -z "$1" ] && return 2
