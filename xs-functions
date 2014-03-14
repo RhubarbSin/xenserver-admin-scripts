@@ -26,7 +26,7 @@ XE_PASSWORD="${XE_PASSWORD=root!!!}"
 
 # get array of UUIDs from name label; set global variable UUIDS
 function get_uuids() {
-    [ $# -ne 2 ] && return 1
+    [ $# -ne 2 ] && return 2
     UUIDS=""
     local XE_OUT=$(xe "$1"-list name-label="$2" --minimal)
     local OBJECT="$1"
@@ -39,7 +39,7 @@ function get_uuids() {
     elif [[ "$XE_OUT" =~ , ]]; then
         UUIDS=( $(echo "$XE_OUT" | sed -e 's/,/ /g') )
         (( QUIET )) || echo "Multiple ${OBJECT}s found"
-        return 2
+        return 3
     else
         UUIDS=( "$XE_OUT" )
         return 0
@@ -48,7 +48,7 @@ function get_uuids() {
 
 # get value of param name from UUID; set global variable PARAM_VALUE
 function get_param() {
-    [ $# -ne 3 ] && return 1
+    [ $# -ne 3 ] && return 2
     PARAM_VALUE=$(xe "$1"-param-get param-name="$2" uuid="$3")
     RETURN="$?"
     if [ "$PARAM_VALUE" == "<not in database>" ]; then
@@ -60,7 +60,7 @@ function get_param() {
 
 # get SR UUID for local storage on host; set global variable SR_UUID
 function get_local_sr_uuid() {
-    [ -z "$1" ] && return 1
+    [ -z "$1" ] && return 2
     SR_UUID=$(xe sr-list params=uuid name-label='Local storage' host="$1" --minimal)
     if [ -z "$SR_UUID" ]; then
         echo "Storage repository \"Local storage\" on host $HOST not found"
@@ -72,42 +72,42 @@ function get_local_sr_uuid() {
 
 # get array of VIF UUIDs from VM UUID; set global variable VIF_UUIDS
 function vm_vif_uuids() {
-    [ -z "$1" ] && return 1
+    [ -z "$1" ] && return 2
     VIF_UUIDS=( $(xe vif-list vm-uuid="$1" --minimal | sed -e 's/,/ /g') )
     return "$?"
 }
 
 # get array of VBD UUIDs from VM UUID; set global variable VBD_UUIDS
 function vm_vbd_uuids() {
-    [ -z "$1" ] && return 1
+    [ -z "$1" ] && return 2
     VBD_UUIDS=( $(xe vbd-list vm-uuid="$1" --minimal | sed -e 's/,/ /g') )
     return "$?"
 }
 
 # get network UUID from VIF UUID; set global variable NETWORK_UUID
 function vif_network_uuid() {
-    [ -z "$1" ] && return 1
+    [ -z "$1" ] && return 2
     NETWORK_UUID=$(xe vif-param-get param-name=network-uuid uuid="$1")
     return "$?"
 }
 
 # get VDI UUID from VBD UUID; set global variable VDI_UUID
 function vbd_vdi_uuid() {
-    [ -z "$1" ] && return 1
+    [ -z "$1" ] && return 2
     VDI_UUID=$(xe vbd-param-get param-name=vdi-uuid uuid="$1")
     return "$?"
 }
 
 # get VIF device from VIF UUID; set global variable VIF_DEVICE
 function vif_device() {
-    [ -z "$1" ] && return 1
+    [ -z "$1" ] && return 2
     VIF_DEVICE=$(xe vif-param-get param-name=device uuid="$1")
     return "$?"
 }
 
 # get PIF VLAN from network UUID; set global variable PIF_VLAN
 function network_pif_vlan() {
-    [ -z "$1" ] && return 1
+    [ -z "$1" ] && return 2
     PIF_VLAN=$(xe pif-list params=VLAN network-uuid="$1" --minimal)
     return "$?"
 }
@@ -117,7 +117,7 @@ function network_pif_vlan() {
 # PV); include type of association (resident, affinity, SR) if a
 # second argument is passed
 function vm_host() {
-    [ -z "$1" ] && return 1
+    [ -z "$1" ] && return 2
     local VM_UUID="$1"
     if [ -n "$2" ]; then
         local ASSOC=1
@@ -174,7 +174,7 @@ function vm_host() {
 # set values of params for UUID; interpret input args as list of two-tuples
 function set_params() {
     if [ $# -lt 4 ] || [ $(( $# % 2 )) -ne 0 ]; then
-        return 1
+        return 2
     fi
     local OBJECT="$1" UUID="$2"
     shift 2
@@ -198,7 +198,7 @@ function set_params() {
 # $...: key/value pairs of map parameter
 function set_map_keys() {
     if [ $# -lt 5 ] || [ $(( $# % 2 )) -ne 1 ]; then
-        return 1
+        return 2
     fi
     local OBJECT="$1" UUID="$2" PARAM_NAME="$3"
     shift 3
@@ -221,7 +221,7 @@ function set_map_keys() {
 # $3: name of map parameter
 # $...: keys of map parameter
 function remove_map_keys() {
-    [ $# -lt 4 ] && return 1
+    [ $# -lt 4 ] && return 2
     local OBJECT="$1" UUID="$2" PARAM_NAME="$3"
     shift 3
     local CMD="xe vm-param-remove uuid=$UUID param-name=$PARAM_NAME" MAP_KEY
@@ -239,17 +239,17 @@ function remove_map_keys() {
 #
 
 function valid_uuid() {
-    [ -z "$1" ] && return 1
+    [ -z "$1" ] && return 2
     echo "$1" | egrep -q '^[0-9a-fA-F]{8}-([0-9a-fA-F]{4}-){3}[0-9a-fA-F]{12}$'
 }
 
 function valid_integer() {
-    [ -z "$1" ] && return 1
+    [ -z "$1" ] && return 2
     echo "$1" | egrep -q '^[0-9]*$'
 }
 
 function valid_mac_address() {
-    [ -z "$1" ] && return 1
+    [ -z "$1" ] && return 2
     echo "$1" | egrep -q '([0-9a-fA-F]{2}:){5}[0-9a-fA-F]{2}'
 }
 
@@ -265,15 +265,15 @@ function prompt() {
     if echo "$RESPONSE" | egrep -q ' *[Yy] *'; then
         return 0
     else
-        return 1
+        return 3
     fi
 }
 
 # check for non-empty variables named by arguments
 function have_required() {
-    [ -z "$1" ] && return 1
+    [ -z "$1" ] && return 2
     for VAR_NAME in $*; do
-        [ -z "${!VAR_NAME}" ] && return 1
+        [ -z "${!VAR_NAME}" ] && return 3
     done
     return 0
 }

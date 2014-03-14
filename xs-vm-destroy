@@ -87,10 +87,7 @@ case $? in
     0)
         destroy "${UUIDS[0]}"
         ;;
-    1)
-        exit 1
-        ;;
-    2)
+    3)
         for VM_UUID in ${UUIDS[@]}; do
             destroy "$VM_UUID"
         done
