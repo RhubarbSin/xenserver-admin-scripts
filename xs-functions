@@ -163,9 +163,8 @@ function vm_host() {
         fi
     fi
     # check for VDIs on local SR
-    local VBD_UUIDS
+    local VBD_UUIDS VBD_UUID
     vm_vbd_uuids "$VM_UUID"
-    local VBD_UUID
     for VBD_UUID in ${VBD_UUIDS[@]}; do
         get_param vbd vdi-uuid "$VBD_UUID" || continue
         local VDI_UUID="$PARAM_VALUE"
@@ -185,7 +184,7 @@ function vm_host() {
     done
 
     if [ -n "$VM_HOST" ]; then
-        (( ASSOC )) && VM_HOST="$VM_HOST ($(echo ${VM_ASSOC[*]} | sed 's/ /, /g'))"
+        (( ASSOC )) && VM_HOST="$VM_HOST (${VM_ASSOC[*]})"
         return 0
     else
         return 1
