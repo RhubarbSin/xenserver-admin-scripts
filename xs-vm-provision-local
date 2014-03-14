@@ -42,7 +42,8 @@ shift $(( OPTIND - 1 ))
 have_required TEMPLATE VM || usage
 
 [ -n "$HOST" ] || HOST=$(hostname)
-get_local_sr_uuid "$HOST" || exit 1
+get_uuid sr "Local storage" host "$HOST" || exit 1
+SR_UUID="$UUID"
 echo "SR UUID: $SR_UUID"
 
 get_uuid template "$TEMPLATE"

@@ -47,7 +47,8 @@ HOST_UUID="$UUID"
 echo "Host UUID: $HOST_UUID"
 
 if (( LOCAL )); then
-    get_local_sr_uuid "$HOST" || exit 1
+    get_uuid sr "Local storage" host "$HOST" || exit 1
+    SR_UUID="$UUID"
     echo "SR UUID: $SR_UUID"
 fi
 
