@@ -217,7 +217,7 @@ function set_params() {
         shift
         PARAM_VALUE="$1"
         shift
-        CMD="$CMD $PARAM_NAME=$PARAM_VALUE"
+        CMD="$CMD $PARAM_NAME=\"$PARAM_VALUE\""
     done
     eval "$CMD"
     return $?
