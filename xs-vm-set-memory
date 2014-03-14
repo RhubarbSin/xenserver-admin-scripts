@@ -43,8 +43,8 @@ shift $(( OPTIND - 1 ))
 REQUIRED=( "STATIC_MIN" "STATIC_MAX" "DYNAMIC_MIN" "DYNAMIC_MAX" "VM" )
 have_required "${REQUIRED[@]}" || usage
 
-get_uuids vm "$VM" || exit 1
-VM_UUID="${UUIDS[0]}"
+get_uuid vm "$VM" || exit 1
+VM_UUID="$UUID"
 echo "VM UUID: $VM_UUID"
 
 set_params vm "$VM_UUID" \

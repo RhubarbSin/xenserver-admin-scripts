@@ -43,8 +43,8 @@ shift $(( OPTIND - 1 ))
 REQUIRED=( "HOST" "VM" )
 have_required "${REQUIRED[@]}" || usage
 
-get_uuids host "$HOST" || exit 1
-HOST_UUID="${UUIDS[0]}"
+get_uuid host "$HOST" || exit 1
+HOST_UUID="$UUID"
 echo "Host UUID: $HOST_UUID"
 
 if (( LOCAL )); then
@@ -52,8 +52,8 @@ if (( LOCAL )); then
     echo "SR UUID: $SR_UUID"
 fi
 
-get_uuids vm "$VM" || exit 1
-VM_UUID="${UUIDS[0]}"
+get_uuid vm "$VM" || exit 1
+VM_UUID="$UUID"
 echo "VM UUID: $VM_UUID"
 
 if (( LOCAL )); then

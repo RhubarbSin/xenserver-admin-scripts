@@ -35,13 +35,13 @@ if ! . "$XS_FUNCTIONS"; then
     exit 1
 fi
 
-QUIET=1 get_uuids vm "$VM"
+QUIET=1 get_uuid vm "$VM"
 case $? in
     0)
         if (( SHOW )); then
             IS="is not"
         else
-            if xe vm-param-set is-a-template=true uuid="${UUIDS[0]}"; then
+            if xe vm-param-set is-a-template=true uuid="$UUID"; then
                 IS="now is"
             else
                 exit 1
@@ -49,11 +49,11 @@ case $? in
         fi
         ;;
     1)
-        get_uuids template "$VM" || exit 1
+        get_uuid template "$VM" || exit 1
         if (( SHOW )); then
             IS="is"
         else
-            if xe template-param-set is-a-template=false uuid="${UUIDS[0]}"; then
+            if xe template-param-set is-a-template=false uuid="$UUID"; then
                 IS="now is not"
             else
                 exit 1
@@ -61,7 +61,7 @@ case $? in
         fi
         ;;
     2)
-        get_uuids vm "$VM"  # because first vm_uuid() call suppressed output
+        get_uuid vm "$VM"  # because first vm_uuid() call suppressed output
         exit 1
         ;;
     *)

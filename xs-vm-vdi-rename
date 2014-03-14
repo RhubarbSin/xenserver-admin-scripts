@@ -38,8 +38,8 @@ REQUIRED=( "VM" "NAME_LABEL" )
 have_required "${REQUIRED[@]}" || usage
 [ -z "$VM" ] || [ -z "$NAME_LABEL" ] && usage
 
-get_uuids vm "$VM" || exit 1
-VM_UUID="${UUIDS[0]}"
+get_uuid vm "$VM" || exit 1
+VM_UUID="$UUID"
 echo "VM UUID: $VM_UUID"
 vm_vbd_uuids "$VM_UUID" || exit 1
 INDEX=0

@@ -51,11 +51,11 @@ else
     MACADDRESS="random"
 fi
 
-get_uuids vm "$VM" || exit 1
-VM_UUID=${UUIDS[0]}
+get_uuid vm "$VM" || exit 1
+VM_UUID="$UUID"
 echo "VM UUID: $VM_UUID"
-get_uuids network "$NETWORK" || exit 1
-NETWORK_UUID=${UUIDS[0]}
+get_uuid network "$NETWORK" || exit 1
+NETWORK_UUID="$UUID"
 echo "Network UUID: $NETWORK_UUID"
 
 CMD="xe vif-create device=$DEVICE mac=$MACADDRESS network-uuid=$NETWORK_UUID vm-uuid=$VM_UUID"

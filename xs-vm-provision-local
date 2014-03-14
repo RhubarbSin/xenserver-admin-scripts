@@ -46,8 +46,8 @@ have_required "${REQUIRED[@]}" || usage
 get_local_sr_uuid "$HOST" || exit 1
 echo "SR UUID: $SR_UUID"
 
-get_uuids template "$TEMPLATE"
-TEMPLATE_UUID="${UUIDS[0]}"
+get_uuid template "$TEMPLATE"
+TEMPLATE_UUID="$UUID"
 [ -n "$TEMPLATE_UUID" ] || exit 1
 echo "Template UUID: $TEMPLATE_UUID"
 

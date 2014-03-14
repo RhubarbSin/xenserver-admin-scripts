@@ -37,8 +37,8 @@ if ! . "$XS_FUNCTIONS"; then
     exit 1
 fi
 
-get_uuids vm "$VM" || exit 1
-VM_UUID=${UUIDS[0]}
+get_uuid vm "$VM" || exit 1
+VM_UUID="$UUID"
 echo "VM UUID: $VM_UUID"
 
 VIF_UUIDS=$(xe vif-list vm-uuid="$VM_UUID" --minimal | sed -e 's/,/ /g')

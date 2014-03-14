@@ -25,8 +25,8 @@ if ! . "$XS_FUNCTIONS"; then
     exit 1
 fi
 
-get_uuids vm "$VM" || exit 1
-VM_UUID="${UUIDS[0]}"
+get_uuid vm "$VM" || exit 1
+VM_UUID="$UUID"
 echo "VM UUID: $VM_UUID"
 get_param vm PV-args "$VM_UUID"
 PV_ARGS="$PARAM_VALUE"

@@ -22,8 +22,8 @@ if ! . "$XS_FUNCTIONS"; then
     exit 1
 fi
 
-get_uuids vm "$VM" || exit 1
-vm_vif_uuids "${UUIDS[0]}"
+get_uuid vm "$VM" || exit 1
+vm_vif_uuids "$UUID"
 [ -z "$VIF_UUIDS" ] && exit 0
 for VIF_UUID in ${VIF_UUIDS[*]}; do
     get_param vif device "$VIF_UUID"
