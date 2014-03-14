@@ -89,15 +89,6 @@ function get_param() {
     fi
 }
 
-# get array of VBD UUIDs from VM UUID; set global variable VBD_UUIDS
-function vm_vbd_uuids() {
-    [ -z "$1" ] && return 2
-    VBD_UUIDS=()
-    local XE_OUT=$(xe vbd-list vm-uuid="$1" --minimal)
-    VBD_UUIDS=( ${XE_OUT//,/ } )
-    return $?
-}
-
 # get network UUID from VIF UUID; set global variable NETWORK_UUID
 function vif_network_uuid() {
     [ -z "$1" ] && return 2
@@ -158,7 +149,8 @@ function vm_host() {
     fi
     # check for VDIs on local SR
     local VBD_UUIDS VBD_UUID
-    vm_vbd_uuids "$VM_UUID"
+    get_uuids vbd "" vm-uuid "$VM_UUID"
+    VBD_UUIDS=( ${UUIDS[*]} )
     for VBD_UUID in ${VBD_UUIDS[@]}; do
         get_param vbd vdi-uuid "$VBD_UUID" || continue
         local VDI_UUID="$PARAM_VALUE"

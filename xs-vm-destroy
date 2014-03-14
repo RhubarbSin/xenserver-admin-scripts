@@ -38,7 +38,8 @@ function destroy() {
 function destroy_vdis() {
     [ -z "$1" ] && return 1
     local VM_UUID="$1"
-    vm_vbd_uuids "$VM_UUID" || return 1
+    get_uuids vbd "" vm-uuid "$VM_UUID"
+    VBD_UUIDS=( ${UUIDS[*]} )
     local INDEX=0
     local VBD_UUID
     for VBD_UUID in ${VBD_UUIDS[@]}; do

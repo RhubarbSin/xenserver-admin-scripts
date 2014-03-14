@@ -40,7 +40,8 @@ have_required VM NAME_LABEL || usage
 get_uuid vm "$VM" || exit 1
 VM_UUID="$UUID"
 echo "VM UUID: $VM_UUID"
-vm_vbd_uuids "$VM_UUID" || exit 1
+get_uuids vbd "" vm-uuid "$VM_UUID"
+VBD_UUIDS=( ${UUIDS[*]} )
 INDEX=0
 VDI_UUIDS=""
 for VBD_UUID in ${VBD_UUIDS[@]}; do

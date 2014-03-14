@@ -55,7 +55,8 @@ echo -e "Creating $VM...\c"
 VM_UUID=$(xe vm-install sr-uuid="$SR_UUID" template="$TEMPLATE_UUID" new-name-label="$VM")
 [ -z "$VM_UUID" ] && exit 1
 echo -e "done.\nVM UUID: $VM_UUID"
-vm_vbd_uuids "$VM_UUID"
+get_uuids vbd "" vm-uuid "$VM_UUID"
+VBD_UUIDS=( ${UUIDS[*]} )
 for VBD_UUID in ${VBD_UUIDS[@]}; do
     vbd_vdi_uuid "$VBD_UUID"
     if [ "$VDI_UUID" == '<not in database>' ];then
