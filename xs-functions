@@ -25,14 +25,26 @@ XE_PASSWORD="${XE_PASSWORD=root!!!}"
 #
 
 # get array of UUIDs from name label; set global variable UUIDS
+# $1: object type
+# $2: name label (may be empty string)
+# $...: parameter name/value pairs (optional)
 function get_uuids() {
-    [ $# -ne 2 ] && return 2
+    [ $# -lt 2 ] && return 2
     UUIDS=()
-    local XE_OUT=$(xe "$1"-list name-label="$2" --minimal)
-    local OBJECT="$1"
-    for TYPE in vm vif vbd vdi sr pbd pif; do
-        [ "$1" == "$TYPE" ] && local OBJECT=$(echo "$1" | tr a-z A-Z) && break
+    local OBJECT="$1" NAME_LABEL="$2"
+    shift 2
+    local CMD="xe $OBJECT-list"
+    [ -n "$NAME_LABEL" ] && CMD="$CMD name-label=\"$NAME_LABEL\""
+    local PARAM_NAME PARAM_VALUE
+    while [ -n "$1" ]; do
+        PARAM_NAME="$1"
+        shift
+        PARAM_VALUE="$1"
+        shift
+        CMD="$CMD $PARAM_NAME=\"$PARAM_VALUE\""
     done
+    CMD="$CMD --minimal"
+    local XE_OUT=$(eval "$CMD")
     if [ -z "$XE_OUT" ]; then
         return 1
     elif [[ "$XE_OUT" =~ , ]]; then
@@ -45,9 +57,9 @@ function get_uuids() {
 }
 
 function get_uuid() {
-    [ $# -ne 2 ] && return 2
+    [ $# -lt 2 ] && return 2
     UUID=""
-    get_uuids "$1" "$2"
+    get_uuids "$@"
     case $? in
         0)
             UUID="${UUIDS[0]}"
@@ -62,18 +74,6 @@ function get_uuid() {
     esac
 }
 
-# get value of param name from UUID; set global variable PARAM_VALUE
-function get_param() {
-    [ $# -ne 3 ] && return 2
-    PARAM_VALUE=$(xe "$1"-param-get param-name="$2" uuid="$3")
-    RETURN=$?
-    if [ "$PARAM_VALUE" == "<not in database>" ]; then
-        return 2
-    else
-        return "$RETURN"
-    fi
-}
-
 # get SR UUID for local storage on host; set global variable SR_UUID
 function get_local_sr_uuid() {
     [ -z "$1" ] && return 2
@@ -83,6 +83,18 @@ function get_local_sr_uuid() {
         return 1
     else
         return 0
+    fi
+}
+
+# get value of param name from UUID; set global variable PARAM_VALUE
+function get_param() {
+    [ $# -ne 3 ] && return 2
+    PARAM_VALUE=$(xe "$1"-param-get param-name="$2" uuid="$3")
+    RETURN=$?
+    if [ "$PARAM_VALUE" == "<not in database>" ]; then
+        return 2
+    else
+        return "$RETURN"
     fi
 }
 
