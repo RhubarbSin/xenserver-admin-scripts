@@ -66,7 +66,10 @@ function get_uuid() {
             return 0
             ;;
         3)
-            (( QUIET )) || echo "Multiple ${OBJECT}s found"
+            if ! (( QUIET )); then
+                local LABEL=$(object_label "$1") || return 1
+                echo "Multiple ${LABEL}s found"
+            fi
             return 1
             ;;
         *)
@@ -294,5 +297,16 @@ function initialize() {
     for VAR_NAME in $*; do
         eval "${VAR_NAME}"=""
     done
+    return 0
+}
+
+# return capitalized label of object type if appropriate
+function object_label() {
+    [ $# -ne 1 ] && return 2
+    local LABEL="$1"
+    for TYPE in vm vif vbd vdi sr pbd pif; do
+        [ "$1" == "$TYPE" ] && LABEL=$(echo "$1" | tr a-z A-Z) && break
+    done
+    echo "$LABEL"
     return 0
 }
