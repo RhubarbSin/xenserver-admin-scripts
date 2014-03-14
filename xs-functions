@@ -293,7 +293,7 @@ function prompt() {
 function have_required() {
     [ -z "$1" ] && return 2
     for VAR_NAME in $*; do
-        [ -z "${!VAR_NAME}" ] && return 3
+        [ -z "${!VAR_NAME}" ] && return 1
     done
     return 0
 }

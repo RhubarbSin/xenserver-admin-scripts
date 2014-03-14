@@ -35,8 +35,7 @@ while getopts :m:s:v: OPT; do
 done
 shift $(( OPTIND - 1 ))
 [ -n "$1" ] && usage
-REQUIRED=( "VM" "VCPUS_MAX" "VCPUS_AT_STARTUP" )
-have_required "${REQUIRED[@]}" || usage
+have_required VM VCPUS_MAX VCPUS_AT_STARTUP || usage
 
 get_uuid vm "$VM" || exit 1
 VM_UUID="$UUID"

@@ -40,8 +40,7 @@ while getopts :lh:v: OPT; do
 done
 shift $(( OPTIND - 1 ))
 [ -n "$1" ] && usage
-REQUIRED=( "HOST" "VM" )
-have_required "${REQUIRED[@]}" || usage
+have_required HOST VM || usage
 
 get_uuid host "$HOST" || exit 1
 HOST_UUID="$UUID"

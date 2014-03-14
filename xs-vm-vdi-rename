@@ -34,8 +34,7 @@ while getopts :v:n: OPT; do
 done
 shift $(( OPTIND - 1 ))
 [ -n "$1" ] && usage
-REQUIRED=( "VM" "NAME_LABEL" )
-have_required "${REQUIRED[@]}" || usage
+have_required VM NAME_LABEL || usage
 [ -z "$VM" ] || [ -z "$NAME_LABEL" ] && usage
 
 get_uuid vm "$VM" || exit 1

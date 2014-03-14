@@ -39,8 +39,7 @@ while getopts :v:n:d:m: OPT; do
 done
 shift $(( OPTIND - 1 ))
 [ -n "$1" ] && usage
-REQUIRED=( "VM" "NETWORK" "DEVICE" )
-have_required "${REQUIRED[@]}" || usage
+have_required VM NETWORK DEVICE || usage
 
 if [ -n "$MACADDRESS" ]; then
     if ! valid_mac_address "$MACADDRESS"; then

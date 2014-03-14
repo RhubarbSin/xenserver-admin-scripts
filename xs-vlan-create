@@ -55,8 +55,7 @@ while getopts :p:v:n:d: OPT; do
 done
 shift $(( OPTIND - 1 ))
 [ -n "$1" ] && usage
-REQUIRED=( "PIF" "VLAN" "NETWORK" )
-have_required "${REQUIRED[@]}" || usage
+have_required PIF VLAN NETWORK || usage
 
 pif_uuid "$PIF" || exit 1
 echo "PIF UUID: $PIF_UUID"

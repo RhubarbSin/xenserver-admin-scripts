@@ -39,8 +39,7 @@ while getopts :h:t:v: OPT; do
 done
 shift $(( OPTIND - 1 ))
 [ -n "$1" ] && usage
-REQUIRED=("TEMPLATE" "VM" )
-have_required "${REQUIRED[@]}" || usage
+have_required TEMPLATE VM || usage
 
 [ -n "$HOST" ] || HOST=$(hostname)
 get_local_sr_uuid "$HOST" || exit 1

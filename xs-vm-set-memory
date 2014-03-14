@@ -40,8 +40,7 @@ while getopts :s:S:d:D:v: OPT; do
 done
 shift $(( OPTIND - 1 ))
 [ -n "$1" ] && usage
-REQUIRED=( "STATIC_MIN" "STATIC_MAX" "DYNAMIC_MIN" "DYNAMIC_MAX" "VM" )
-have_required "${REQUIRED[@]}" || usage
+have_required STATIC_MIN STATIC_MAX DYNAMIC_MIN DYNAMIC_MAX VM || usage
 
 get_uuid vm "$VM" || exit 1
 VM_UUID="$UUID"
