@@ -89,13 +89,6 @@ function get_param() {
     fi
 }
 
-# get network UUID from VIF UUID; set global variable NETWORK_UUID
-function vif_network_uuid() {
-    [ -z "$1" ] && return 2
-    NETWORK_UUID=$(xe vif-param-get param-name=network-uuid uuid="$1")
-    return $?
-}
-
 # get name label of host running VM or preferred host for VM or host
 # housing VM's primary VDI (assumed to be hda for HVM and xvda for
 # PV); include type of association (resident, affinity, SR) if a
