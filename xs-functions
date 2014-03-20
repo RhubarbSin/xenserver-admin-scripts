@@ -216,6 +216,19 @@ function remove_map_keys() {
     return $?
 }
 
+# destroy object matching UUID
+# $1: class type
+# $2: class UUID
+function destroy() {
+    [ $# -ne 2 ] && return 2
+    local CLASS="$1" UUID="$2"
+    if xe "$CLASS"-destroy uuid="$UUID"; then
+        return 0
+    else
+        return 1
+    fi
+}
+
 # 
 ########################################################################
 # 
