@@ -59,6 +59,10 @@ function get_uuids() {
     fi
 }
 
+# get single UUID matching name label/parameters
+# $1: class type
+# $2: name label (may be empty string)
+# $...: parameter name/value pairs (optional)
 function get_uuid() {
     [ $# -lt 2 ] && return 2
     local GET_OUT  # must be declared separately to preserve subshell status
