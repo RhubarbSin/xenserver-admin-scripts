@@ -84,7 +84,7 @@ fi
 VM_UUIDS=$(get_uuids vm "$VM")
 if [ -n "$VM_UUIDS" ]; then
     for VM_UUID in $VM_UUIDS; do
-            destroy "$VM_UUID"
+            destroy_all "$VM_UUID"
     done
     exit 0
 else
