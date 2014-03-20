@@ -1,0 +1,64 @@
+#!/bin/bash
+
+function rename_vdis() {
+    [ $# -ne 1 ] && return 2
+    local VM_NAME_LABEL="$1" VDI_UUIDS VDI_UUID
+    VDI_UUIDS=$(xe vbd-list vm-name-label=$VM_NAME_LABEL params=vdi-uuid mode=RW type=Disk --minimal) || return 1
+    for VDI_UUID in ${VDI_UUIDS//,/ }; do
+        echo "VDI UUID: $VDI_UUID"
+        echo -e "Renaming VDI...\c"
+        if set_params vdi "$VDI_UUID" name-label "$VM_NAME_LABEL"; then
+            echo "done."
+        fi
+    done
+    return 0
+}
+
+function usage() {
+    cat <<EOF
+
+For VMs that have name labels matching regular expression, set name
+label of VDIs to match VM's name label.
+
+Usage: ${0##*/} [-f] REGEX
+
+-f       set name without prompting
+REGEX    regular expression for matching VM name labels, e.g. '^p[0-9]{5}'
+EOF
+    exit 2
+}
+
+FORCE=0
+
+while getopts :f OPT; do
+    case $OPT in
+        f)
+            FORCE=1
+            ;;
+        *)
+            usage
+            exit 2
+    esac
+done
+shift $(( OPTIND - 1 ))
+[[ -z "$1" || $# -gt 1 ]] && usage
+REGEX="$1"
+
+MYDIR=$(dirname $0)
+XS_FUNCTIONS="$MYDIR/xs-functions"
+if ! . "$XS_FUNCTIONS"; then
+    echo "Error while sourcing $XS_FUNCTIONS."
+    exit 1
+fi
+
+for VM_UUID in $(get_uuids vm ""); do
+    echo -e "VM UUID: $VM_UUID"
+    VM_NAME_LABEL=$(get_param vm "$VM_UUID" name-label)
+    if [[ "$VM_NAME_LABEL" =~ $REGEX ]]; then
+        echo "VM name label: $VM_NAME_LABEL"
+        if ! (( FORCE )); then
+            prompt "Rename VDIs" || continue
+        fi
+        rename_vdis "$VM_NAME_LABEL"
+    fi
+done
