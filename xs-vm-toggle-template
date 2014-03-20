@@ -35,37 +35,28 @@ if ! . "$XS_FUNCTIONS"; then
     exit 1
 fi
 
-QUIET=1 get_uuid vm "$VM"
-case $? in
-    0)
-        if (( SHOW )); then
-            IS="is not"
+if VM_UUID=$(get_uuid vm "$VM"); then
+    if (( SHOW )); then
+        IS="is not"
+    else
+        if set_params vm "$VM_UUID" is-a-template true; then
+            IS="now is"
         else
-            if set_param vm "$UUID" is-a-template true; then
-                IS="now is"
-            else
-                exit 1
-            fi
+            exit 1
         fi
-        ;;
-    1)
-        get_uuid template "$VM" || exit 1
-        if (( SHOW )); then
-            IS="is"
+    fi
+elif TEMPLATE_UUID=$(get_uuid template "$VM"); then
+    if (( SHOW )); then
+        IS="is"
+    else
+        if set_params vm "$TEMPLATE_UUID" is-a-template false; then
+            IS="now is not"
         else
-            if set_param vm "$UUID" is-a-template false; then
-                IS="now is not"
-            else
-                exit 1
-            fi
+            exit 1
         fi
-        ;;
-    2)
-        get_uuid vm "$VM"  # because first vm_uuid() call suppressed output
-        exit 1
-        ;;
-    *)
-        exit $?
-esac
+    fi
+else
+    exit 1
+fi
 
 echo "$VM $IS a template."

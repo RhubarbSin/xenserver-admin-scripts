@@ -42,12 +42,11 @@ shift $(( OPTIND - 1 ))
 [ -n "$1" ] && usage
 have_required STATIC_MIN STATIC_MAX DYNAMIC_MIN DYNAMIC_MAX VM || usage
 
-get_uuid vm "$VM" || exit 1
-VM_UUID="$UUID"
+VM_UUID=$(get_uuid vm "$VM") || exit 1
 echo "VM UUID: $VM_UUID"
 
-set_params vm "$VM_UUID" \
-    memory-static-max "$STATIC_MAX" \
-    memory-dynamic-max "$DYNAMIC_MAX" \
-    memory-dynamic-min "$DYNAMIC_MIN" \
-    memory-static-min "$STATIC_MIN"
+xe vm-memory-limits-set uuid="$VM_UUID" \
+    static-min="$STATIC_MIN" \
+    dynamic-min="$DYNAMIC_MIN" \
+    dynamic-max="$DYNAMIC_MAX" \
+    static-max="$STATIC_MAX"

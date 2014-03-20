@@ -23,16 +23,16 @@ if ! . "$XS_FUNCTIONS"; then
     exit 1
 fi
 
-get_uuid vm "$VM" || exit 1
-VM_UUID="$UUID"
+VM_UUID=$(get_uuid vm "$VM") || exit 1
 echo "VM UUID: $VM_UUID"
 PV_ARGS=$(get_param vm "$VM_UUID" PV-args)
 if [[ "$PV_ARGS" =~ single ]]; then
     echo -e "Disabling single-user boot...\c"
     PV_ARGS=${PV_ARGS/single/}
+    PV_ARGS=$(echo $PV_ARGS)  # use word-splitting to collapse spaces
 else
     echo -e "Enabling single-user boot...\c"
-    PV_ARGS=$(echo $PV_ARGS single) # use word-splitting to collapse spaces
+    PV_ARGS=$(echo single $PV_ARGS)  # use word-splitting to collapse spaces
 fi
 if set_params vm "$VM_UUID" PV-args "$PV_ARGS"; then
     echo "done."

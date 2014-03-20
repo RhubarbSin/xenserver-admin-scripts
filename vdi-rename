@@ -6,20 +6,25 @@
 
 REGEX='^p[0-9]{5}'
 
-for VM_UUID in $(xe vm-list params=uuid --minimal | sed 's/,/ /g'); do
+MYDIR=$(dirname $0)
+XS_FUNCTIONS="$MYDIR/xs-functions"
+if ! . "$XS_FUNCTIONS"; then
+    echo "Error while sourcing $XS_FUNCTIONS."
+    exit 1
+fi
+
+for VM_UUID in $(get_uuids vm ""); do
     echo -e "VM UUID: $VM_UUID"
-    VM_NAME_LABEL=$(xe vm-list params=name-label uuid=$VM_UUID --minimal)
+    VM_NAME_LABEL=$(get_param vm "$VM_UUID" name-label)
     if [[ "$VM_NAME_LABEL" =~ $REGEX ]]; then
         echo "VM name label: $VM_NAME_LABEL"
-        VDI_UUID=$(xe vbd-list params=vdi-uuid userdevice=0 vm-uuid=$VM_UUID --minimal)
-        if [ -n "$VDI_UUID" ]; then
-            echo "VDI UUID: $VDI_UUID"
-            echo -e "Renaming VDI...\c"
-            if xe vdi-param-set name-label="$VM_NAME_LABEL" uuid="$VDI_UUID"; then
-                echo "done."
-            fi
+        VDI_UUID=$(xe vbd-list params=vdi-uuid userdevice=0 vm-uuid=$VM_UUID --minimal) || continue
+        echo "VDI UUID: $VDI_UUID"
+        echo -e "Renaming VDI...\c"
+        if set_params vdi "$VDI_UUID" name-label "$VM_NAME_LABEL"; then
+            echo "done."
         else
-            echo "Error: VDI not found"
+            echo
         fi
     fi
 done

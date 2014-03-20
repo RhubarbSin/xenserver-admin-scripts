@@ -25,17 +25,17 @@ if ! . "$XS_FUNCTIONS"; then
     exit 1
 fi
 
-get_uuid vm "$VM" || exit 1
-VM_UUID="$UUID"
+VM_UUID=$(get_uuid vm "$VM") || exit 1
 echo "VM UUID: $VM_UUID"
 PV_ARGS=$(get_param vm "$VM_UUID" PV-args)
 if [[ "$PV_ARGS" =~ $ADD_ARGS ]]; then
     echo -e "Disabling network rescue boot...\c"
     PV_ARGS=${PV_ARGS/$ADD_ARGS/}
+    PV_ARGS=$(echo $PV_ARGS)  # use word-splitting to collapse spaces
     PV_BOOTLOADER="pygrub"
 else
     echo -e "Enabling network rescue boot...\c"
-    PV_ARGS=$(echo $PV_ARGS $ADD_ARGS) # use word-splitting to collapse spaces
+    PV_ARGS=$(echo $PV_ARGS $ADD_ARGS)  # use word-splitting to collapse spaces
     PV_BOOTLOADER="eliloader"
 fi
 if set_params vm "$VM_UUID" PV-args "$PV_ARGS" PV-bootloader "$PV_BOOTLOADER"; then

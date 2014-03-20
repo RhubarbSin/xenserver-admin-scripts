@@ -1,25 +1,67 @@
 #!/bin/bash
-#
-# Destroy VDIs not associated with multiple VBDs or VBDs associated with VMs.
-#
-# USE WITH CAUTION: NOT WELL-TESTED
-#
 
-VDI_UUIDS=$(xe vdi-list --minimal | sed -e 's/,/ /g')
+function usage() {
+    cat <<EOF
+Usage: ${0##*/} [-f]
+
+Destroy non-read-only VDIs not associated with multiple VBDs or with
+VBDs associated with VMs.
+
+-f    destroy without prompting
+EOF
+    exit 2
+}
+
+FORCE=0
+
+while getopts :f OPT; do
+    case $OPT in
+        f)
+            FORCE=1
+            ;;
+        *)
+            usage
+    esac
+done
+shift $(( OPTIND - 1 ))
+[ $# -gt 0 ] && usage
+
+MYDIR=$(dirname $0)
+XS_FUNCTIONS="$MYDIR/xs-functions"
+if ! . "$XS_FUNCTIONS"; then
+    echo "Error while sourcing $XS_FUNCTIONS."
+    exit 1
+fi
+
+VDI_UUIDS=$(get_uuids vdi "")
 for VDI_UUID in $VDI_UUIDS; do
-    VBD_UUIDS=( $(xe vbd-list vdi-uuid=$VDI_UUID --minimal | sed -e 's/,/ /g') )
+    echo "VDI UUID: $VDI_UUID"
+    VBD_UUIDS=( $(get_uuids vbd "" vdi-uuid "$VDI_UUID") )
     [ ${#VBD_UUIDS[@]} -gt 1 ] && continue  # short-circuit: multiple VBDs
     if [ ${#VBD_UUIDS[@]} == 1 ]; then
-        VM_UUID=$(xe vbd-param-get param-name=vm-uuid uuid="${VBD_UUIDS[0]}")
-        [ -n $(xe vm-list uuid="$VM_UUID" --minimal) ] && continue  # VM exists
-        echo "VBD UUID: ${VBD_UUIDS[0]}"
-        VM_NAME_LABEL=$(xe vbd-param-get param-name=vm-name-label uuid="${VBD_UUIDS[0]}")
+        VBD_UUID="${VBD_UUIDS[0]}"
+        VM_UUID=$(get_param vbd "$VBD_UUID" vm-uuid)
+        if [ -n "$(xe vm-list uuid=$VM_UUID)" ]; then
+            VM_NAME_LABEL=$(get_param vm "$VM_UUID" name-label)
+            echo "Skipping existing VM $VM_NAME_LABEL."
+            continue
+        fi
+        echo "VBD UUID: $VBD_UUID"
+        VM_NAME_LABEL=$(get_param vbd "$VBD_UUID" vm-name-label)
         echo "VM name label: $VM_NAME_LABEL"
     fi
 
-    if [ $(xe vdi-param-get param-name=read-only uuid="$VDI_UUID" --minimal) == "false" ]; then
-        echo "VDI UUID: $VDI_UUID"
-        VDI_NAME_LABEL=$(xe vdi-param-get param-name=name-label uuid="$VDI_UUID")
-        echo "VDI name label: $VDI_NAME_LABEL"
+    if [ $(get_param vdi "$VDI_UUID" read-only) == true ]; then
+        echo "Skipping read-only VDI."
+        continue
+    fi
+    VDI_NAME_LABEL=$(xe vdi-param-get param-name=name-label uuid="$VDI_UUID")
+    echo "VDI name label: $VDI_NAME_LABEL"
+    echo -e "Destroying VDI...\c"
+    if ! (( FORCE )); then
+        prompt "Destroy VDI" || continue
+    fi
+    if xe vdi-destroy uuid="$VDI_UUID"; then
+        echo "done."
     fi
 done

@@ -37,17 +37,13 @@ shift $(( OPTIND - 1 ))
 [ -n "$1" ] && usage
 have_required VM VCPUS_MAX VCPUS_AT_STARTUP || usage
 
-get_uuid vm "$VM" || exit 1
-VM_UUID="$UUID"
+VM_UUID=$(get_uuid vm "$VM") || exit 1
 echo "VM UUID: $VM_UUID"
 
-CMD="xe vm-param-set uuid=$VM_UUID"
-get_param vm "$VM_UUID" VCPUs-max
-if [ "$VCPUS_AT_STARTUP" -gt "$PARAM_VALUE" ]; then
-    CMD="$CMD VCPUs-max=$VCPUS_MAX"
-    CMD="$CMD VCPUs-at-startup=$VCPUS_AT_STARTUP"
+CURRENT_MAX=$(get_param vm "$VM_UUID" VCPUs-max) || exit 1
+if [ "$VCPUS_AT_STARTUP" -gt "$CURRENT_MAX" ]; then
+    ARGS="VCPUs-max $VCPUS_MAX VCPUs-at-startup $VCPUS_AT_STARTUP"
 else
-    CMD="$CMD VCPUs-at-startup=$VCPUS_AT_STARTUP"
-    CMD="$CMD VCPUs-max=$VCPUS_MAX"
+    ARGS="VCPUs-at-startup $VCPUS_AT_STARTUP VCPUs-max $VCPUS_MAX"
 fi
-eval "$CMD"
+set_params vm "$VM_UUID" $ARGS

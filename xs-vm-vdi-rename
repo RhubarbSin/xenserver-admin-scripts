@@ -37,14 +37,12 @@ shift $(( OPTIND - 1 ))
 have_required VM NAME_LABEL || usage
 [ -z "$VM" ] || [ -z "$NAME_LABEL" ] && usage
 
-get_uuid vm "$VM" || exit 1
-VM_UUID="$UUID"
+VM_UUID=$(get_uuid vm "$VM") || exit 1
 echo "VM UUID: $VM_UUID"
-get_uuids vbd "" vm-uuid "$VM_UUID"
-VBD_UUIDS=( ${UUIDS[*]} )
+VBD_UUIDS=$(get_uuids vbd "" vm-uuid "$VM_UUID")
 INDEX=0
-VDI_UUIDS=""
-for VBD_UUID in ${VBD_UUIDS[@]}; do
+initialize VDI_UUIDS
+for VBD_UUID in $VBD_UUIDS; do
     echo "VBD UUID: $VBD_UUID"
     VDI_UUID=$(get_param vbd "$VBD_UUID" vdi-uuid) || exit 1
     [ "$VDI_UUID" == "<not in database>" ] && continue
