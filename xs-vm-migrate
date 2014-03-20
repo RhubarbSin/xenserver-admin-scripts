@@ -14,13 +14,6 @@ EOF
     exit 2
 }
 
-MYDIR=$(dirname $0)
-XS_FUNCTIONS="$MYDIR/xs-functions"
-if ! . "$XS_FUNCTIONS"; then
-    echo "Error while sourcing $XS_FUNCTIONS."
-    exit 1
-fi
-
 LOCAL=0
 
 while getopts :lh:v: OPT; do
@@ -41,6 +34,13 @@ done
 shift $(( OPTIND - 1 ))
 [ -n "$1" ] && usage
 have_required HOST VM || usage
+
+MYDIR=$(dirname $0)
+XS_FUNCTIONS="$MYDIR/xs-functions"
+if ! . "$XS_FUNCTIONS"; then
+    echo "Error while sourcing $XS_FUNCTIONS."
+    exit 1
+fi
 
 get_uuid host "$HOST" || exit 1
 HOST_UUID="$UUID"

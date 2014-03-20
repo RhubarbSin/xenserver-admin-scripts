@@ -1,19 +1,6 @@
 #!/bin/bash
 
-function usage() {
-    cat <<EOF
-
-Destroy all VMs that have a matching name label.
-
-Usage: ${0##*/} [-f] VM
-
--f    destroy without prompting
-VM    name label of the VM
-EOF
-    exit 2
-}
-
-function destroy() {
+function destroy_all() {
     [ -z "$1" ] && return 1
     local VM_UUID="$1"
     echo "VM UUID: $VM_UUID"
@@ -48,15 +35,28 @@ function destroy_vdis() {
         [ "$READ_ONLY" == "true" ] && continue
         echo "VDI UUID: $VDI_UUID"
         echo -e "Destroying VDI...\c"
-        xe vdi-destroy uuid="$VDI_UUID" || return 1
+        destroy vdi "$VDI_UUID" || return 1
         echo "done."
     done
 }
 
 function destroy_vm() {
     echo -e "Destroying VM...\c"
-    xe vm-destroy uuid=$VM_UUID || return 1
+    destroy vm $VM_UUID || return 1
     echo "done."
+}
+
+function usage() {
+    cat <<EOF
+
+Destroy all VMs that have a matching name label.
+
+Usage: ${0##*/} [-f] VM
+
+-f    destroy without prompting
+VM    name label of the VM
+EOF
+    exit 2
 }
 
 FORCE=0
