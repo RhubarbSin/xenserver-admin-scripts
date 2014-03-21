@@ -2,9 +2,9 @@
 These are works in progress for performing common XenServer CLI tasks. They are somewhat site-specific and have some known bugs.
 
 * Assumptions
-  - name labels are unique among each type of object (VM, SR, network...)
+  - name labels are unique among each type of object (VM, SR, network...); exception is local storage
+  - each host has one local storage repository with name label 'Local storage'
   - host name label is same as hostname
-  - each host's local storage repository has name label 'Local storage'
 
 * Environment variables
   - XE_SERVER
@@ -13,39 +13,21 @@ These are works in progress for performing common XenServer CLI tasks. They are 
   - XE_PASSWORD
 
 * Reasons
+  - common multi-step tasks are tedious with =xe=
   - =vm-uninstall= leaves orphan VDIs
   ...to be completed...
 
 * Remaining work
-** xs-* scripts [20/27]
+** xs-* scripts [6/12]
    - [ ] set arg vars to avoid env vars; always initialize vars!
-   - [X] change (( 1 )) loops
-   - [X] convert *-param-get() xs-functions to param()
-   - [X] use have_required()
-   - [X] param() to param_value()
-   - [X] *_uuid() to uuid() or uuids()
-   - [X] use prompt() in install-from-template
    - [ ] NFS mount scripts from XenGateway
-   - [ ] refactor scripts
-   - [X] xe configuration in xs-functions
-   - [X] prompt with extra arg in xs-functions
-   - [X] match vdi name labels to vm name labels
-   - [X] xs-vm-vdi-rename
-   - [X] destroy unused vdis
-   - [X] generalize xs-vm-migrate
-   - [X] spaces in name-label
-   - [ ] "vm-make-golden-master"
-   - [ ] vm-start
+   - [ ] "vm-make-golden-master" (maybe not)
    - [X] default to localhost for xs-vm-provision-local
    - [ ] generalize xs-vm-provision
-   - [X] vm-summary is a mess
+   - [ ] =vm_host()= is a mess
    - [ ] vm-vnc-toggle for PV
-   - [X] consider IFS=, instead of sed for UUID lists
-   - [X] vif-destroy -i -v
-   - [X] vif-create
-   - [X] accomodate duplicate name-labels in xs-function *_uuid
-   - [X] xcp_ scripts to xs-
 *** xs-vm-install-from-template
+    - [ ] use =xs-functions=
     - [ ] cli bug?
     - [X] set VCPUs
     - [ ] HVM-boot-params for Other install media
