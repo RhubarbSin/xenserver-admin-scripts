@@ -1,12 +1,8 @@
 #!/bin/bash
 
 function destroy_all() {
-    [ -z "$1" ] && return 1
+    [ $# -ne 1 ] && return 1
     local VM_UUID="$1"
-    echo "VM UUID: $VM_UUID"
-    if ! (( FORCE )); then
-        prompt "Destroy VM" || return 0
-    fi
     echo -e "Getting power state of VM...\c"
     POWER_STATE=$(get_param vm "$VM_UUID" power-state) || return 1
     echo "$POWER_STATE."
@@ -23,9 +19,9 @@ function destroy_all() {
 }
 
 function destroy_vdis() {
-    [ -z "$1" ] && return 1
+    [ $# -ne 1 ] && return 1
     local VM_UUID="$1" VBD_UUIDS
-    VBD_UUIDS=$(get_uuids vbd "" vm-uuid "$VM_UUID") || return 1
+    VBD_UUIDS=$(get_uuids vbd "" vm-uuid "$VM_UUID")
     local INDEX=0 VBD_UUID VDI_UUID READ_ONLY
     for VBD_UUID in $VBD_UUIDS; do
         echo "VBD UUID: $VBD_UUID"
@@ -35,8 +31,9 @@ function destroy_vdis() {
         [ "$READ_ONLY" == "true" ] && continue
         echo "VDI UUID: $VDI_UUID"
         echo -e "Destroying VDI...\c"
-        destroy vdi "$VDI_UUID" || return 1
-        echo "done."
+        if destroy vdi "$VDI_UUID"; then
+            echo "done."
+        fi
     done
 }
 
@@ -84,7 +81,11 @@ fi
 VM_UUIDS=$(get_uuids vm "$VM")
 if [ -n "$VM_UUIDS" ]; then
     for VM_UUID in $VM_UUIDS; do
-            destroy_all "$VM_UUID"
+        echo "VM UUID: $VM_UUID"
+        if ! (( FORCE )); then
+            prompt "Destroy VM" || continue
+        fi
+        destroy_all "$VM_UUID"
     done
     exit 0
 else

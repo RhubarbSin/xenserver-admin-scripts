@@ -48,7 +48,7 @@ for VIF_UUID in ${VIF_UUIDS//,/ }; do
         prompt "Destroy device $DEVICE" || continue
     fi
     echo -e "Destroying VIF...\c"
-    if xe vif-destroy uuid="$VIF_UUID"; then
+    if destroy vif "$VIF_UUID"; then
         echo "done."
     else
         exit 1

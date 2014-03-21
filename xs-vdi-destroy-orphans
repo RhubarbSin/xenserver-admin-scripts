@@ -57,11 +57,11 @@ for VDI_UUID in $VDI_UUIDS; do
     fi
     VDI_NAME_LABEL=$(xe vdi-param-get param-name=name-label uuid="$VDI_UUID")
     echo "VDI name label: $VDI_NAME_LABEL"
-    echo -e "Destroying VDI...\c"
     if ! (( FORCE )); then
         prompt "Destroy VDI" || continue
     fi
-    if xe vdi-destroy uuid="$VDI_UUID"; then
+    echo -e "Destroying VDI...\c"
+    if destroy vdi "$VDI_UUID"; then
         echo "done."
     fi
 done
