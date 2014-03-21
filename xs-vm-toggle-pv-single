@@ -13,15 +13,15 @@ EOF
     exit 2
 }
 
-[ -z "$1" ] || [ $# -gt 1 ] && usage
-VM="$1"
-
 MYDIR=$(dirname $0)
 XS_FUNCTIONS="$MYDIR/xs-functions"
 if ! . "$XS_FUNCTIONS"; then
     echo "Error while sourcing $XS_FUNCTIONS."
     exit 1
 fi
+
+[ -z "$1" ] || [ $# -gt 1 ] && usage
+VM="$1"
 
 VM_UUID=$(get_uuid vm "$VM") || exit 1
 echo "VM UUID: $VM_UUID"

@@ -1,5 +1,17 @@
 #!/bin/bash
 
+function usage() {
+    cat <<EOF
+Usage: ${0##*/} -p PIF -v VLAN -n NETWORK [-d DESCRIPTION]
+
+-p    name label of PIF (physical interface) that supports the desired VLAN
+-v    ID (tag) of the new VLAN
+-n    name label of the new network
+-d    name description of the new network
+EOF
+    exit 2
+}
+
 # get PIF UUID from device name (optional VLAN arg); set global
 # PIF_UUID
 function pif_uuid() {
@@ -15,17 +27,12 @@ function pif_uuid() {
     fi
 }
 
-function usage() {
-    cat <<EOF
-Usage: ${0##*/} -p PIF -v VLAN -n NETWORK [-d DESCRIPTION]
-
--p    name label of PIF (physical interface) that supports the desired VLAN
--v    ID (tag) of the new VLAN
--n    name label of the new network
--d    name description of the new network
-EOF
-    exit 2
-}
+MYDIR=$(dirname $0)
+XS_FUNCTIONS="$MYDIR/xs-functions"
+if ! . "$XS_FUNCTIONS"; then
+    echo "Error while sourcing $XS_FUNCTIONS."
+    exit 1
+fi
 
 while getopts :p:v:n:d: OPT; do
     case $OPT in
@@ -48,13 +55,6 @@ done
 shift $(( OPTIND - 1 ))
 [ -n "$1" ] && usage
 have_required PIF VLAN NETWORK || usage
-
-MYDIR=$(dirname $0)
-XS_FUNCTIONS="$MYDIR/xs-functions"
-if ! . "$XS_FUNCTIONS"; then
-    echo "Error while sourcing $XS_FUNCTIONS."
-    exit 1
-fi
 
 PIF_UUID=$(pif_uuid "$PIF") || exit 1
 echo "PIF UUID: $PIF_UUID"

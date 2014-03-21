@@ -14,6 +14,13 @@ EOF
     exit 2
 }
 
+MYDIR=$(dirname $0)
+XS_FUNCTIONS="$MYDIR/xs-functions"
+if ! . "$XS_FUNCTIONS"; then
+    echo "Error while sourcing $XS_FUNCTIONS."
+    exit 1
+fi
+
 SHORT=0
 POOL=0
 DOM0=0
@@ -35,13 +42,6 @@ while getopts :spc OPT; do
 done
 shift $(( OPTIND - 1 ))
 [ -n "$1" ] && usage
-
-MYDIR=$(dirname $0)
-XS_FUNCTIONS="$MYDIR/xs-functions"
-if ! . "$XS_FUNCTIONS"; then
-    echo "Error while sourcing $XS_FUNCTIONS."
-    exit 1
-fi
 
 if (( DOM0 )); then
     OPT_STR=""

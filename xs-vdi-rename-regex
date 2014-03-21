@@ -1,5 +1,19 @@
 #!/bin/bash
 
+function usage() {
+    cat <<EOF
+
+For VMs that have name labels matching regular expression, set name
+label of VDIs to match VM's name label.
+
+Usage: ${0##*/} [-f] REGEX
+
+-f       set name without prompting
+REGEX    regular expression for matching VM name labels, e.g. '^p[0-9]{5}'
+EOF
+    exit 2
+}
+
 function rename_vdis() {
     [ $# -ne 1 ] && return 2
     local VM_NAME_LABEL="$1" VDI_UUIDS VDI_UUID
@@ -14,19 +28,12 @@ function rename_vdis() {
     return 0
 }
 
-function usage() {
-    cat <<EOF
-
-For VMs that have name labels matching regular expression, set name
-label of VDIs to match VM's name label.
-
-Usage: ${0##*/} [-f] REGEX
-
--f       set name without prompting
-REGEX    regular expression for matching VM name labels, e.g. '^p[0-9]{5}'
-EOF
-    exit 2
-}
+MYDIR=$(dirname $0)
+XS_FUNCTIONS="$MYDIR/xs-functions"
+if ! . "$XS_FUNCTIONS"; then
+    echo "Error while sourcing $XS_FUNCTIONS."
+    exit 1
+fi
 
 FORCE=0
 
@@ -43,13 +50,6 @@ done
 shift $(( OPTIND - 1 ))
 [[ -z "$1" || $# -gt 1 ]] && usage
 REGEX="$1"
-
-MYDIR=$(dirname $0)
-XS_FUNCTIONS="$MYDIR/xs-functions"
-if ! . "$XS_FUNCTIONS"; then
-    echo "Error while sourcing $XS_FUNCTIONS."
-    exit 1
-fi
 
 for VM_UUID in $(get_uuids vm ""); do
     echo -e "VM UUID: $VM_UUID"

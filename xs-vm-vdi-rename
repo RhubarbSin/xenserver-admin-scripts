@@ -13,6 +13,13 @@ EOF
     exit 2
 }
 
+MYDIR=$(dirname $0)
+XS_FUNCTIONS="$MYDIR/xs-functions"
+if ! . "$XS_FUNCTIONS"; then
+    echo "Error while sourcing $XS_FUNCTIONS."
+    exit 1
+fi
+
 while getopts :v:n: OPT; do
     case $OPT in
         v)
@@ -29,13 +36,6 @@ shift $(( OPTIND - 1 ))
 [ -n "$1" ] && usage
 have_required VM NAME_LABEL || usage
 [ -z "$VM" ] || [ -z "$NAME_LABEL" ] && usage
-
-MYDIR=$(dirname $0)
-XS_FUNCTIONS="$MYDIR/xs-functions"
-if ! . "$XS_FUNCTIONS"; then
-    echo "Error while sourcing $XS_FUNCTIONS."
-    exit 1
-fi
 
 VM_UUID=$(get_uuid vm "$VM") || exit 1
 echo "VM UUID: $VM_UUID"
