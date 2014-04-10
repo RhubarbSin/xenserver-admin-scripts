@@ -1,0 +1,56 @@
+#!/bin/bash
+
+function usage() {
+    cat <<EOF
+
+Store VM's configuration data in xenstore's vm-data parameter for
+automatic configuration on first boot.
+
+Usage: ${0##*/} -h HOSTNAME -i IPADDRESS -n NETMASK -g GATEWAY -p PASSWORD VM
+EOF
+    exit 2
+}
+
+MYDIR=$(dirname $0)
+XS_FUNCTIONS="$MYDIR/xs-functions"
+if ! . "$XS_FUNCTIONS"; then
+    echo "Error while sourcing $XS_FUNCTIONS."
+    exit 1
+fi
+
+while getopts :h:i:n:g:p: OPT; do
+    case $OPT in
+        h)
+            HOSTNAME="$OPTARG"
+            ;;
+        i)
+            IPADDRESS="$OPTARG"
+            ;;
+        n)
+            NETMASK="$OPTARG"
+            ;;
+        g)
+            GATEWAY="$OPTARG"
+            ;;
+        p)
+            PASSWORD="$OPTARG"
+            ;;
+        *)
+            usage
+    esac
+done
+shift $(( OPTIND - 1 ))
+VM="$1"
+shift
+[ -n "$1" ] && usage
+have_required HOSTNAME IPADDRESS NETMASK GATEWAY PASSWORD VM || usage
+
+VM_UUID=$(get_uuid vm "$VM") || exit 1
+echo "VM UUID: $VM_UUID"
+
+set_map_keys vm "$VM_UUID" xenstore-data \
+    vm-data/hostname "$HOSTNAME" \
+    vm-data/ipaddress "$IPADDRESS" \
+    vm-data/netmask "$NETMASK" \
+    vm-data/gateway "$GATEWAY" \
+    vm-data/password "$PASSWORD"
