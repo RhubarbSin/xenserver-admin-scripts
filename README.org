@@ -3,6 +3,7 @@ These are works in progress for performing common XenServer CLI tasks. They are 
 
 * Assumptions
   - name labels are unique among each type of object (VM, SR, network...); exception is local storage
+  - name labels of default templates have not been changed from original values
   - each host has one local storage repository with name label 'Local storage' (only relevant if local storage is used)
   - host name label is same as hostname
 
