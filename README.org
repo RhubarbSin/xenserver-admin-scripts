@@ -3,10 +3,11 @@ These are works in progress for performing common XenServer CLI tasks. They are 
 
 * Assumptions
   - name labels are unique among each type of object (VM, SR, network...); exception is local storage
-  - each host has one local storage repository with name label 'Local storage'
+  - each host has one local storage repository with name label 'Local storage' (only relevant if local storage is used)
   - host name label is same as hostname
 
 * Environment variables
+  These are used to set the XE_EXTRA_ARGS environment variable if it is not set:
   - XE_SERVER
   - XE_PORT
   - XE_USER
@@ -14,26 +15,33 @@ These are works in progress for performing common XenServer CLI tasks. They are 
 
 * Reasons
   - common multi-step tasks are tedious with =xe=
+  - name labels are more user-friendly than UUIDs
   - =vm-uninstall= leaves orphan VDIs
   ...to be completed...
 
 * Remaining work
-** xs-* scripts [6/12]
+** xs-* scripts [1/8]
    - [ ] set arg vars to avoid env vars; always initialize vars!
    - [ ] NFS mount scripts from XenGateway
-   - [ ] "vm-make-golden-master" (maybe not)
    - [X] default to localhost for xs-vm-provision-local
-   - [ ] generalize xs-vm-provision
    - [ ] =vm_host()= is a mess
    - [ ] vm-vnc-toggle for PV
+*** xs-vm-provision-local
+    - [ ] rename to xs-vm-provision
+    - [ ] support shared storage (default to host's/pool's default)
+*** xs-vif-create
+    - [ ] automatically plug/unplug VIFs on running VMs
 *** xs-vm-install-from-template
     - [ ] use =xs-functions=
     - [ ] cli bug?
     - [X] set VCPUs
     - [ ] HVM-boot-params for Other install media
-    - [ ] memory limits options
+    - [ ] correct default PV-args for RHEL/CentOS vs. Debian/Ubuntu
+    - [ ] prompt for PV-args with default string shown
     - [ ] interactive bugs
-      - [ ] empty string for dist
-      - [ ] empty string for arch
-      - [ ] empty string for version?
+      + [ ] empty string for dist
+      + [ ] empty string for arch
+      + [ ] empty string for version?
     - [ ] PV text/vnc console connection option
+*** xs-vm-xenstore-config
+    - [ ] use name label as default hostname
