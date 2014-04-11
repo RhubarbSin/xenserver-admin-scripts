@@ -39,11 +39,13 @@ These are works in progress for performing common XenServer CLI tasks. They are 
     - [X] set VCPUs
     - [ ] HVM-boot-params for Other install media
     - [ ] correct default PV-args for RHEL/CentOS vs. Debian/Ubuntu
+    - [ ] INSTALL_REPO_URL_BASE as optional environment variable
     - [ ] prompt for PV-args with default string shown
+    - [ ] prompt with default in case of only one option
+    - [ ] PV text/vnc console connection option
     - [ ] interactive bugs
       + [ ] empty string for dist
       + [ ] empty string for arch
       + [ ] empty string for version?
-    - [ ] PV text/vnc console connection option
 *** xs-vm-xenstore-config
     - [ ] use name label as default hostname
