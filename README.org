@@ -21,13 +21,15 @@ These are works in progress for performing common XenServer CLI tasks. They are 
   ...to be completed...
 
 * Remaining work
-** xs-* scripts [2/6]
+** xs-* scripts [2/8]
    - [ ] set arg vars to avoid env vars; always initialize vars!
    - [ ] NFS mount scripts from XenGateway
    - [X] default to localhost for xs-vm-provision-local
    - [ ] =vm_host()= is a mess
    - [ ] vm-vnc-toggle for PV
    - [X] make VM a positional arg for xs-vm-*
+   - [ ] use space-delimited lists instead of arrays where practical
+   - [ ] consider more default verbosity with option to disable
 *** xs-vm-provision-local
     - [ ] rename to xs-vm-provision
     - [ ] support shared storage (default to host's/pool's default)
