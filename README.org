@@ -38,7 +38,7 @@ These are works in progress for performing common XenServer CLI tasks. They are 
     - [ ] cli bug?
     - [X] set VCPUs
     - [ ] HVM-boot-params for Other install media
-    - [ ] correct default PV-args for RHEL/CentOS vs. Debian/Ubuntu
+    - [X] correct default PV-args for RHEL/CentOS vs. Debian/Ubuntu
     - [ ] INSTALL_REPO_URL_BASE as optional environment variable
     - [ ] prompt for PV-args with default string shown
     - [ ] prompt with default in case of only one option

@@ -292,7 +292,7 @@ function get_install_repository() {
     if [ $DISTRIBUTION == "CentOS" ]; then
         INSTALL_REPO_URL="$INSTALL_REPO_URL_BASE/$DISTRIBUTION/$VERSION/os/$ARCHITECTURE"
     elif [ $DISTRIBUTION == "Ubuntu" -o $DISTRIBUTION == "Debian" ]; then
-        INSTALL_REPO_URL="$INSTALL_REPO_URL_BASE/$DISTRIBUTION/$VERSION/$ARCHITECTURE"
+        INSTALL_REPO_URL="$INSTALL_REPO_URL_BASE/$(echo $DISTRIBUTION | tr 'A-Z' 'a-z')"
     else
         echo -e "\nEnter URL of installation repository: \c"
         read INSTALL_REPO_URL
