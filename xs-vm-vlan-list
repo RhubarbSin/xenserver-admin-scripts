@@ -22,12 +22,10 @@ fi
 [ -z "$1" ] || [ $# -gt 1 ] && usage
 VM="$1"
 
-get_uuid vm "$VM" || exit 1
-VM_UUID="$UUID"
+VM_UUID=$(get_uuid vm "$VM") || exit 1
 echo "VM UUID: $VM_UUID"
-get_uuids vif "" vm-uuid "$VM_UUID"
-VIF_UUIDS=( ${UUIDS[*]} )
-for VIF_UUID in ${VIF_UUIDS[@]}; do
+VIF_UUIDS=$(get_uuids vif "" vm-uuid "$VM_UUID")
+for VIF_UUID in $VIF_UUIDS; do
     VIF_DEVICE=$(get_param vif "$VIF_UUID" device)
     NETWORK_UUID=$(get_param vif "$VIF_UUID" network-uuid)
     PIF_VLAN=$(xe pif-list params=VLAN network-uuid="$NETWORK_UUID" --minimal)
