@@ -6,7 +6,7 @@ function usage() {
 Store VM's configuration data in xenstore's vm-data parameter for
 automatic configuration on first boot.
 
-Usage: ${0##*/} -h HOSTNAME -i IPADDRESS -n NETMASK -g GATEWAY -p PASSWORD VM
+Usage: ${0##*/} [-h HOSTNAME] -i IPADDRESS -n NETMASK -g GATEWAY -p PASSWORD VM
 EOF
     exit 2
 }
@@ -18,6 +18,7 @@ if ! . "$XS_FUNCTIONS"; then
     exit 1
 fi
 
+unset HOSTNAME IPADDRESS NETMASK GATEWAY PASSWORD
 while getopts :h:i:n:g:p: OPT; do
     case $OPT in
         h)
@@ -43,11 +44,12 @@ shift $(( OPTIND - 1 ))
 VM="$1"
 shift
 [ -n "$1" ] && usage
-have_required HOSTNAME IPADDRESS NETMASK GATEWAY PASSWORD VM || usage
+have_required IPADDRESS NETMASK GATEWAY PASSWORD VM || usage
 
 VM_UUID=$(get_uuid vm "$VM") || exit 1
 echo "VM UUID: $VM_UUID"
 
+[ -n "$HOSTNAME" ] || HOSTNAME=$(get_param vm "$VM_UUID" name-label)
 set_map_keys vm "$VM_UUID" xenstore-data \
     vm-data/hostname "$HOSTNAME" \
     vm-data/ipaddress "$IPADDRESS" \

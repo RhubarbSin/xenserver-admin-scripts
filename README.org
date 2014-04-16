@@ -48,4 +48,4 @@ These are works in progress for performing common XenServer CLI tasks. They are 
       + [ ] empty string for arch
       + [ ] empty string for version?
 *** xs-vm-xenstore-config
-    - [ ] use name label as default hostname
+    - [X] use name label as default hostname
