@@ -3,13 +3,13 @@
 function usage() {
     cat <<EOF
 
-Provision a VM from a template using local storage.
+Provision a VM from a fully populated template using local storage.
 
-Usage: ${0##*/} -t TEMPLATE -v VM [-h HOST]
+Usage: ${0##*/} [-h HOST] -t TEMPLATE VM
 
--t    name label of the VM template to be copied
--v    name label of the new VM
 -h    name label (host name) of XenServer host on which to provision the VM
+-t    name label of the VM template to be copied
+VM    name label of the new VM
 EOF
     exit 2
 }
@@ -22,7 +22,7 @@ if ! . "$XS_FUNCTIONS"; then
 fi
 
 initialize HOST TEMPLATE VM
-while getopts :h:t:v: OPT; do
+while getopts :h:t: OPT; do
     case $OPT in
         h)
             HOST="$OPTARG"
@@ -30,36 +30,31 @@ while getopts :h:t:v: OPT; do
         t)
             TEMPLATE="$OPTARG"
             ;;
-        v)
-            VM="$OPTARG"
-            ;;
         *)
             usage
     esac
 done
 shift $(( OPTIND - 1 ))
+VM="$1"
+shift
 [ -n "$1" ] && usage
 have_required TEMPLATE VM || usage
 
 [ -n "$HOST" ] || HOST=$(hostname)
-get_uuid sr "Local storage" host "$HOST" || exit 1
-SR_UUID="$UUID"
+SR_UUID=$(get_uuid sr "Local storage" host "$HOST") || exit 1
 echo "SR UUID: $SR_UUID"
 
-get_uuid template "$TEMPLATE"
-TEMPLATE_UUID="$UUID"
-[ -n "$TEMPLATE_UUID" ] || exit 1
+TEMPLATE_UUID=$(get_uuid template "$TEMPLATE") || exit 1
 echo "Template UUID: $TEMPLATE_UUID"
 
 echo -e "Creating $VM...\c"
 VM_UUID=$(xe vm-install sr-uuid="$SR_UUID" template="$TEMPLATE_UUID" new-name-label="$VM")
 [ -z "$VM_UUID" ] && exit 1
 echo -e "done.\nVM UUID: $VM_UUID"
-get_uuids vbd "" vm-uuid "$VM_UUID"
-VBD_UUIDS=( ${UUIDS[*]} )
-for VBD_UUID in ${VBD_UUIDS[@]}; do
+VBD_UUIDS=$(get_uuids vbd "" vm-uuid "$VM_UUID")
+for VBD_UUID in $VBD_UUIDS; do
     VDI_UUID=$(get_param vbd "$VBD_UUID" vdi-uuid) || exit 1
-    if [ "$VDI_UUID" == '<not in database>' ];then
+    if [ "$VDI_UUID" == '<not in database>' ]; then
         continue
     else
         READ_ONLY=$(get_param vdi "$VDI_UUID" read-only) || exit 1
