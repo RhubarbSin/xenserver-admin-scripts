@@ -5,10 +5,10 @@ function usage() {
 
 Change name label of a VM and all of its non-read-only VDIs.
 
-Usage: ${0##*/} -v VM -n NAME
+Usage: ${0##*/} -n NAME VM
 
--v    name label of the VM
 -n    new name label
+VM    name label of the VM
 EOF
     exit 2
 }
@@ -20,11 +20,8 @@ if ! . "$XS_FUNCTIONS"; then
     exit 1
 fi
 
-while getopts :v:n: OPT; do
+while getopts :n: OPT; do
     case $OPT in
-        v)
-            VM="$OPTARG"
-            ;;
         n)
             NAME_LABEL="$OPTARG"
             ;;
@@ -33,6 +30,8 @@ while getopts :v:n: OPT; do
     esac
 done
 shift $(( OPTIND - 1 ))
+VM="$1"
+shift
 [ -n "$1" ] && usage
 have_required VM NAME_LABEL || usage
 [ -z "$VM" ] || [ -z "$NAME_LABEL" ] && usage

@@ -5,7 +5,7 @@ function usage() {
 
 Set a VM's memory parameters.
 
-Usage: ${0##*/} -s STATIC_MIN -S STATIC_MAX -d DYNAMIC_MIN -D DYNAMIC_MAX -v VM
+Usage: ${0##*/} -s STATIC_MIN -S STATIC_MAX -d DYNAMIC_MIN -D DYNAMIC_MAX VM
 EOF
     exit 2
 }
@@ -17,7 +17,7 @@ if ! . "$XS_FUNCTIONS"; then
     exit 1
 fi
 
-while getopts :s:S:d:D:v: OPT; do
+while getopts :s:S:d:D: OPT; do
     case $OPT in
         s)
             STATIC_MIN="$OPTARG"
@@ -31,20 +31,20 @@ while getopts :s:S:d:D:v: OPT; do
         D)
             DYNAMIC_MAX="$OPTARG"
             ;;
-        v)
-            VM="$OPTARG"
-            ;;
         *)
             usage
     esac
 done
 shift $(( OPTIND - 1 ))
+VM="$1"
+shift
 [ -n "$1" ] && usage
 have_required STATIC_MIN STATIC_MAX DYNAMIC_MIN DYNAMIC_MAX VM || usage
 
 VM_UUID=$(get_uuid vm "$VM") || exit 1
 echo "VM UUID: $VM_UUID"
 
+# can't use set_params() here because of constraints on memory parameters
 xe vm-memory-limits-set uuid="$VM_UUID" \
     static-min="$STATIC_MIN" \
     dynamic-min="$DYNAMIC_MIN" \

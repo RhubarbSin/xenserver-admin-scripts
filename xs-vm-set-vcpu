@@ -6,7 +6,7 @@ function usage() {
 
 Set a VM's VCPU parameters.
 
-Usage: ${0##*/} -m VCPUS_MAX -s VCPUS_AT_STARTUP -v VM
+Usage: ${0##*/} -m VCPUS_MAX -s VCPUS_AT_STARTUP VM
 EOF
     exit 2
 }
@@ -18,7 +18,7 @@ if ! . "$XS_FUNCTIONS"; then
     exit 1
 fi
 
-while getopts :m:s:v: OPT; do
+while getopts :m:s: OPT; do
     case $OPT in
         m)
             VCPUS_MAX="$OPTARG"
@@ -26,14 +26,13 @@ while getopts :m:s:v: OPT; do
         s)
             VCPUS_AT_STARTUP="$OPTARG"
             ;;
-        v)
-            VM="$OPTARG"
-            ;;
         *)
             usage
     esac
 done
 shift $(( OPTIND - 1 ))
+VM="$1"
+shift
 [ -n "$1" ] && usage
 have_required VM VCPUS_MAX VCPUS_AT_STARTUP || usage
 

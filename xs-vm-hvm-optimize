@@ -6,13 +6,13 @@ function usage() {
 Enable or disable optional QEMU timers that affect load on dom0.
 Default is to disable.
 
-Usage: ${0##*/} [-e] -v VM { [-s] [-p] [-u] }
+Usage: ${0##*/} [-e] { [-s] [-p] [-u] } VM
 
 -e    enable timers
--v    name label of the VM
 -s    set serial port emulation
 -p    set parallel port emulation
 -u    set USB emulation
+VM    name label of the VM
 EOF
     exit 2
 }
@@ -30,13 +30,10 @@ SERIAL=0
 PARALLEL=0
 USB=0
 
-while getopts :ev:spu OPT; do
+while getopts :espu OPT; do
     case $OPT in
         e)
             DISABLE=0
-            ;;
-        v)
-            VM="$OPTARG"
             ;;
         s)
             SERIAL=1
@@ -52,7 +49,10 @@ while getopts :ev:spu OPT; do
     esac
 done
 shift $(( OPTIND - 1 ))
-[[ $(( SERIAL + PARALLEL + USB )) -eq 0 ]] && usage
+VM="$1"
+shift
+[ -n "$1" ] && usage
+have_required VM && [ $(( SERIAL + PARALLEL + USB )) -gt 0 ] || usage
 
 VM_UUID=$(get_uuid vm "$VM") || exit 1
 echo "VM UUID: $VM_UUID"

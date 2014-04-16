@@ -38,6 +38,9 @@ INSTALL_REPO_URL_BASE="http://10.1.0.1"
 
 function usage() {
     cat <<EOF
+
+Install a VM from a bare template.
+
 Usage: ${0##*/} [OPTION] [...]
 
 -l    VM NAME LABEL

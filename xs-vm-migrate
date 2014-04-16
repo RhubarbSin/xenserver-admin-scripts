@@ -3,13 +3,13 @@
 function usage() {
     cat <<EOF
 
-Perform a live VM migration.
+Perform a live VM migration to another host in the same pool.
 
-Usage: ${0##*/} [-l] -h HOST -v VM
+Usage: ${0##*/} [-l] -h HOST VM
 
 -l    use local storage on destination host
 -h    name label (host name) of XenServer host to which to migrate the VM
--v    name label of the VM
+VM    name label of the VM
 EOF
     exit 2
 }
@@ -23,7 +23,7 @@ fi
 
 LOCAL=0
 
-while getopts :lh:v: OPT; do
+while getopts :lh: OPT; do
     case $OPT in
         l)
             LOCAL=1
@@ -31,14 +31,13 @@ while getopts :lh:v: OPT; do
         h)
             HOST="$OPTARG"
             ;;
-        v)
-            VM="$OPTARG"
-            ;;
         *)
             usage
     esac
 done
 shift $(( OPTIND - 1 ))
+VM="$1"
+shift
 [ -n "$1" ] && usage
 have_required HOST VM || usage
 
