@@ -41,18 +41,15 @@ shift
 [ -n "$1" ] && usage
 have_required HOST VM || usage
 
-get_uuid host "$HOST" || exit 1
-HOST_UUID="$UUID"
+HOST_UUID=$(get_uuid host "$HOST") || exit 1
 echo "Host UUID: $HOST_UUID"
 
 if (( LOCAL )); then
-    get_uuid sr "Local storage" host "$HOST" || exit 1
-    SR_UUID="$UUID"
+    SR_UUID=$(get_uuid sr "Local storage" host "$HOST") || exit 1
     echo "SR UUID: $SR_UUID"
 fi
 
-get_uuid vm "$VM" || exit 1
-VM_UUID="$UUID"
+VM_UUID=$(get_uuid vm "$VM") || exit 1
 echo "VM UUID: $VM_UUID"
 
 if (( LOCAL )); then
