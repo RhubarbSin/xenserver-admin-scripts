@@ -4,7 +4,8 @@ function usage() {
     cat <<EOF
 
 Store VM's configuration data in xenstore's vm-data parameter for
-automatic configuration on first boot.
+automatic configuration on first boot. Default hostname is VM's name
+label.
 
 Usage: ${0##*/} [-h HOSTNAME] -i IPADDRESS -n NETMASK -g GATEWAY -p PASSWORD VM
 EOF

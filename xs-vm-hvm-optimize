@@ -4,7 +4,7 @@ function usage() {
     cat <<EOF
 
 Enable or disable optional QEMU timers that affect load on dom0.
-Default is to disable.
+Default action is to disable.
 
 Usage: ${0##*/} [-e] { [-s] [-p] [-u] } VM
 
