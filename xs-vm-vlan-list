@@ -28,6 +28,7 @@ VIF_UUIDS=$(get_uuids vif "" vm-uuid "$VM_UUID")
 for VIF_UUID in $VIF_UUIDS; do
     VIF_DEVICE=$(get_param vif "$VIF_UUID" device)
     NETWORK_UUID=$(get_param vif "$VIF_UUID" network-uuid)
+    NETWORK_NAME_LABEL=$(get_param network "$NETWORK_UUID" name-label)
     PIF_VLAN=$(xe pif-list params=VLAN network-uuid="$NETWORK_UUID" --minimal)
-    echo "$VIF_DEVICE: VLAN $PIF_VLAN"
+    echo "Device $VIF_DEVICE: VLAN $PIF_VLAN ($NETWORK_NAME_LABEL)"
 done
