@@ -33,14 +33,14 @@ shift $(( OPTIND - 1 ))
 VM="$1"
 shift
 [ -n "$1" ] && usage
-have_required VM NAME_LABEL || usage
+have_required NAME_LABEL VM || usage
 [ -z "$VM" ] || [ -z "$NAME_LABEL" ] && usage
 
 VM_UUID=$(get_uuid vm "$VM") || exit 1
 echo "VM UUID: $VM_UUID"
 VBD_UUIDS=$(get_uuids vbd "" vm-uuid "$VM_UUID")
 INDEX=0
-initialize VDI_UUIDS
+unset VDI_UUIDS
 for VBD_UUID in $VBD_UUIDS; do
     echo "VBD UUID: $VBD_UUID"
     VDI_UUID=$(get_param vbd "$VBD_UUID" vdi-uuid) || exit 1

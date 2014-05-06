@@ -17,6 +17,7 @@ if ! . "$XS_FUNCTIONS"; then
     exit 1
 fi
 
+unset STATIC_MIN STATIC_MAX DYNAMIC_MIN DYNAMIC_MAX
 while getopts :s:S:d:D: OPT; do
     case $OPT in
         s)
@@ -38,7 +39,6 @@ done
 shift $(( OPTIND - 1 ))
 VM="$1"
 shift
-[ -n "$1" ] && usage
 have_required STATIC_MIN STATIC_MAX DYNAMIC_MIN DYNAMIC_MAX VM || usage
 
 VM_UUID=$(get_uuid vm "$VM") || exit 1

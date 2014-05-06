@@ -24,7 +24,6 @@ fi
 SHORT=0
 POOL=0
 DOM0=0
-
 while getopts :spc OPT; do
     case $OPT in
         s)

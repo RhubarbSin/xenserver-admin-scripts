@@ -19,6 +19,7 @@ if ! . "$XS_FUNCTIONS"; then
     exit 1
 fi
 
+unset VM NETWORK DEVICE MACADDRESS
 while getopts :v:n:d:m: OPT; do
     case $OPT in
         v)
@@ -38,7 +39,6 @@ while getopts :v:n:d:m: OPT; do
     esac
 done
 shift $(( OPTIND - 1 ))
-[ -n "$1" ] && usage
 have_required VM NETWORK DEVICE || usage
 
 if [ -n "$MACADDRESS" ]; then

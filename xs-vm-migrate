@@ -22,7 +22,7 @@ if ! . "$XS_FUNCTIONS"; then
 fi
 
 LOCAL=0
-
+unset HOST
 while getopts :lh: OPT; do
     case $OPT in
         l)
@@ -38,7 +38,6 @@ done
 shift $(( OPTIND - 1 ))
 VM="$1"
 shift
-[ -n "$1" ] && usage
 have_required HOST VM || usage
 
 HOST_UUID=$(get_uuid host "$HOST") || exit 1

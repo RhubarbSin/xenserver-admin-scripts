@@ -21,7 +21,6 @@ if ! . "$XS_FUNCTIONS"; then
 fi
 
 SHOW=0
-
 while getopts :s OPT; do
     case $OPT in
         s)
@@ -32,8 +31,9 @@ while getopts :s OPT; do
     esac
 done
 shift $(( OPTIND - 1 ))
-[ -z "$1" ] || [ $# -gt 1 ] && usage
 VM="$1"
+shift
+have_required VM || usage
 
 if VM_UUID=$(get_uuid vm "$VM"); then
     if (( SHOW )); then

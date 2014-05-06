@@ -34,6 +34,7 @@ if ! . "$XS_FUNCTIONS"; then
     exit 1
 fi
 
+unset PIF VLAN NETWORK DESCRIPTION
 while getopts :p:v:n:d: OPT; do
     case $OPT in
         p)
@@ -53,7 +54,6 @@ while getopts :p:v:n:d: OPT; do
     esac
 done
 shift $(( OPTIND - 1 ))
-[ -n "$1" ] && usage
 have_required PIF VLAN NETWORK || usage
 
 PIF_UUID=$(pif_uuid "$PIF") || exit 1

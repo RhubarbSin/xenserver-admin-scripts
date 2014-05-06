@@ -21,7 +21,7 @@ if ! . "$XS_FUNCTIONS"; then
     exit 1
 fi
 
-initialize HOST TEMPLATE VM
+unset HOST TEMPLATE VM
 while getopts :h:t: OPT; do
     case $OPT in
         h)
@@ -37,7 +37,6 @@ done
 shift $(( OPTIND - 1 ))
 VM="$1"
 shift
-[ -n "$1" ] && usage
 have_required TEMPLATE VM || usage
 
 [ -n "$HOST" ] || HOST=$(hostname)

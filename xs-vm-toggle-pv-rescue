@@ -22,8 +22,8 @@ if ! . "$XS_FUNCTIONS"; then
     exit 1
 fi
 
-[ -z "$1" ] || [ $# -gt 1 ] && usage
 VM="$1"
+have_required VM || usage
 
 VM_UUID=$(get_uuid vm "$VM") || exit 1
 echo "VM UUID: $VM_UUID"

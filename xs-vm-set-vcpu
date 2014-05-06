@@ -33,8 +33,7 @@ done
 shift $(( OPTIND - 1 ))
 VM="$1"
 shift
-[ -n "$1" ] && usage
-have_required VM VCPUS_MAX VCPUS_AT_STARTUP || usage
+have_required VCPUS_MAX VCPUS_AT_STARTUP VM || usage
 
 VM_UUID=$(get_uuid vm "$VM") || exit 1
 echo "VM UUID: $VM_UUID"

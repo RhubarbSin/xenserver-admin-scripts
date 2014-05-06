@@ -29,7 +29,7 @@ ENABLE=0
 SERIAL=0
 PARALLEL=0
 USB=0
-
+unset VM
 while getopts :espu OPT; do
     case $OPT in
         e)
@@ -51,7 +51,6 @@ done
 shift $(( OPTIND - 1 ))
 VM="$1"
 shift
-[ -n "$1" ] && usage
 have_required VM && [ $(( SERIAL + PARALLEL + USB )) -gt 0 ] || usage
 
 VM_UUID=$(get_uuid vm "$VM") || exit 1
