@@ -95,7 +95,7 @@ These are works in progress for performing common XenServer CLI tasks. They are 
   #+END_SRC
 
 * Remaining work
-** xs-* scripts [2/9]
+** xs-* scripts [2/10]
    - [ ] set arg vars to avoid env vars; always initialize vars!
    - [ ] NFS mount scripts from XenGateway
    - [X] default to localhost for xs-vm-provision-local
@@ -114,6 +114,7 @@ These are works in progress for performing common XenServer CLI tasks. They are 
     - [ ] use =xs-functions=
     - [ ] check for/reduce/remove hard-coded site-specific stuff
     - [ ] INSTALL_REPO_URL_BASE as optional environment variable
+    - [ ] use pedantic [[http://www.iec.ch/][IEC]] units instead of ambiguous MB/GB
     - [ ] cli bug?
     - [X] set VCPUs
     - [ ] HVM-boot-params for Other install media
