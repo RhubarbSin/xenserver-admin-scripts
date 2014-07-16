@@ -1,6 +1,7 @@
 #+TITLE: XenServer Admin Scripts
 These are works in progress for performing common XenServer CLI tasks. They are somewhat site-specific and have some known bugs.
 
+This minimal documentation began as solely internal development notes before public release and needs enhancement.
 * Assumptions
   - name labels are unique among each type of object (VM, SR, network...); exception is local storage
   - name labels of default templates have not been changed from original values
