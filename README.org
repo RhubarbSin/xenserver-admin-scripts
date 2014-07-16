@@ -18,7 +18,7 @@ These are works in progress for performing common XenServer CLI tasks. They are 
   - common multi-step tasks are tedious with =xe=
   - name labels are more user-friendly than UUIDs
   - =vm-uninstall= leaves orphan VDIs
-  ...to be completed...
+  ...to be completed.
 
 * Example of VM installation
   Note that =xs-vm-install-vm-from-template= is slated for major revision, although the command-line syntax is not expected to be changed significantly.
