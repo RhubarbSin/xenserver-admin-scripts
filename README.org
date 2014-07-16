@@ -20,6 +20,80 @@ These are works in progress for performing common XenServer CLI tasks. They are 
   - =vm-uninstall= leaves orphan VDIs
   ...to be completed...
 
+* Example of VM installation
+  Note that =xs-vm-install-vm-from-template= is slated for major revision, although the command-line syntax is not expected to be changed significantly.
+  #+BEGIN_SRC sh
+  # xs-vm-install-from-template -h
+  /root/bin/xs-vm-install-from-template: option requires an argument -- h
+  
+  Install a VM from a bare template.
+  
+  Usage: xs-vm-install-from-template [OPTION] [...]
+  
+  -l    VM NAME LABEL
+  -c    NUMBER OF VCPUS
+  -m    MEMORY SIZE in MB
+  -h    DISK SIZE in GB
+  -s    STORAGE REPOSITORY NAME LABEL or UUID
+  -n    NETWORK NAME LABEL or UUID
+  -p    MAC ADDRESS (00:16:3e:xx:xx:xx)
+  -t    TEMPLATE NAME LABEL or UUID
+  -d    DISTRIBUTION (CentOS, Ubuntu, Debian)
+  -v    VERSION
+  -a    ARCHITECTURE (i386, x86_64)
+  -i    INSTALLATION REPOSITORY URL
+  -k    KICKSTART FILE URL
+  -r    PRESEED FILE URL
+  -o    LOG FILE LOCATION
+  # xs-vm-install-from-template -l iptest -c 1 -m 4096 -h 15 -s 'Local storage' -n vlan-996 -t 'CentOS 6 (32-bit)' -i http://10.1.0.1/CentOS/6/os/i386 -k http://10.1.0.1/linux-install/centos/centos-vm-tmp.ks
+  
+  This template appears to be for CentOS.
+  
+  This template appears to be for CentOS 6.
+  
+  This template appears to be for a 32-bit installation.
+  
+  Log xe commands to iptest.log [y/N]?: 
+  
+  VM name label: iptest
+  Virtual CPUs: 1
+  Memory size: 4096 MB
+  Disk size: 15 GB
+  Storage repository name label: Local storage
+  Storage repository host: 
+  Storage repository UUID: 377d59f2-007a-b064-b1da-48309111b875
+  Network name label: vlan-996
+  Network UUID: 9923fbcb-a495-933a-3b4c-ab9264db3060
+  Template name label: CentOS 6 (32-bit)
+  Template UUID: f544f1ac-401a-6720-fa0b-5f679617cbf5
+  Distribution: CentOS
+  Version: 6
+  Architecture: i386
+  Installation repository URL: http://10.1.0.1/CentOS/6/os/i386
+  PV args: ks=http://10.1.0.1/linux-install/centos/centos-vm-tmp.ks ksdevice=bootif
+  
+  Immediately start VM for installation [y/N]?: 
+  
+  Continue [y/N]?: y
+  Installing from template...done.
+  VM UUID: e0c5be69-2332-06b2-4f34-98b3bb2c249b
+  Setting VCPUs...done.
+  Setting memory limits...done.
+  Destroying virtual disk image...done.
+  Creating virtual disk image...done.
+  VDI UUID: f6943978-5400-4c0c-bcdf-13dd171758a3
+  Creating virtual block device...done.
+  VBD UUID: 47653165-d6c8-f468-468b-3301ab1f5466
+  Creating virtual interface...done.
+  VIF UUID: 7883b029-0bbf-ac5e-e685-a0dc1449dda6
+  Setting installation repository...done.
+  Setting boot parameters...done.
+  
+  The following command can be used to recreate this VM:
+  
+  /root/bin/xs-vm-install-from-template -l iptest -c 1 -m 4096 -h 15 -s 377d59f2-007a-b064-b1da-48309111b875 -n 9923fbcb-a495-933a-3b4c-ab9264db3060 -t f544f1ac-401a-6720-fa0b-5f679617cbf5 -d CentOS -v 6 -a i386 -i http://10.1.0.1/CentOS/6/os/i386 -k http://10.1.0.1/linux-install/centos/centos-vm-tmp.ks
+  #+END_SRC
+
 * Remaining work
 ** xs-* scripts [2/9]
    - [ ] set arg vars to avoid env vars; always initialize vars!
@@ -38,11 +112,12 @@ These are works in progress for performing common XenServer CLI tasks. They are 
     - [ ] automatically plug/unplug VIFs on running VMs
 *** xs-vm-install-from-template
     - [ ] use =xs-functions=
+    - [ ] check for/reduce/remove hard-coded site-specific stuff
+    - [ ] INSTALL_REPO_URL_BASE as optional environment variable
     - [ ] cli bug?
     - [X] set VCPUs
     - [ ] HVM-boot-params for Other install media
     - [X] correct default PV-args for RHEL/CentOS vs. Debian/Ubuntu
-    - [ ] INSTALL_REPO_URL_BASE as optional environment variable
     - [ ] prompt for PV-args with default string shown
     - [ ] prompt with default in case of only one option
     - [ ] PV text/vnc console connection option
