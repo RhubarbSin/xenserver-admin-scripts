@@ -1,4 +1,7 @@
 #+TITLE: XenServer Admin Scripts
+
+*N.B.: As I no longer use XenServer in a professional capacity, I have no plans to update this repository with code improvements, enhancements, or bug fixes.*
+
 These are works in progress for performing common XenServer CLI tasks. They are somewhat site-specific and have some known bugs.
 
 This minimal documentation began as solely internal development notes before public release and needs enhancement.
